@@ -37,3 +37,27 @@ Ensure Postgres is running and credentials match `apps/api/.env`.
 Configure OAuth secrets when enabling Google/Microsoft sync.
 
 For Apple ICS, add private ICS URLs into `APPLE_ICS_URLS` (comma-separated).
+
+## Project Structure
+
+- `apps/api` - Laravel backend API (app.myfreeslots.com)
+- `apps/web` - React frontend dashboard
+- `docs/` - MVP specification and implementation guidelines
+- `.github/` - CI workflows and PR templates
+
+## Development Commands
+
+**Backend (from `apps/api` directory):**
+```bash
+php artisan serve          # Start Laravel dev server
+php artisan migrate        # Run database migrations
+php artisan migrate:fresh  # Reset and run migrations
+```
+
+**Frontend (from `apps/web` directory):**
+```bash
+npm run dev               # Start Vite dev server
+npm run build            # Build for production
+npm run preview          # Preview production build
+npm run lint             # Run ESLint
+```
