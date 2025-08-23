@@ -14,6 +14,9 @@ Route::prefix('public')->group(function () {
     Route::get('{slug}/availability', [\App\Http\Controllers\PublicAvailabilityController::class, 'show']);
 });
 
+// OAuth callbacks (no auth required)
+Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [\App\Http\Controllers\Auth\AuthController::class, 'me']);
     Route::post('/auth/logout', [\App\Http\Controllers\Auth\AuthController::class, 'logout']);
@@ -35,6 +38,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/me/links', [\App\Http\Controllers\LinksController::class, 'store']);
 
     Route::get('/me/analytics/links', [\App\Http\Controllers\AnalyticsController::class, 'index']);
+
+    // Calendar connections
+    Route::prefix('me/calendar')->group(function () {
+        Route::get('/connections', [\App\Http\Controllers\CalendarConnectionsController::class, 'index']);
+        Route::get('/connections/{connectionId}/calendars', [\App\Http\Controllers\CalendarConnectionsController::class, 'getCalendars']);
+        Route::put('/connections/{connectionId}/calendars', [\App\Http\Controllers\CalendarConnectionsController::class, 'updateCalendarInclusion']);
+        Route::post('/sync', [\App\Http\Controllers\CalendarConnectionsController::class, 'sync']);
+        Route::get('/events', [\App\Http\Controllers\CalendarConnectionsController::class, 'getEvents']);
+
+        // Google Calendar OAuth
+        Route::post('/google/connect', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect']);
+        Route::delete('/google/disconnect', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'disconnect']);
+    });
 });
 
 // Webhooks

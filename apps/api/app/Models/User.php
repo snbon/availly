@@ -61,4 +61,33 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(AvailabilityRule::class);
     }
+
+    public function calendarConnections(): HasMany
+    {
+        return $this->hasMany(CalendarConnection::class);
+    }
+
+    public function eventsCache(): HasMany
+    {
+        return $this->hasMany(EventsCache::class);
+    }
+
+    /**
+     * Get Google Calendar connection if exists.
+     */
+    public function googleCalendarConnection(): ?CalendarConnection
+    {
+        return $this->calendarConnections()
+            ->where('provider', 'google')
+            ->where('status', 'active')
+            ->first();
+    }
+
+    /**
+     * Check if user has an active Google Calendar connection.
+     */
+    public function hasGoogleCalendarConnected(): bool
+    {
+        return $this->googleCalendarConnection() !== null;
+    }
 }
