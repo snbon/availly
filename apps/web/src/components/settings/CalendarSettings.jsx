@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Trash2, RefreshCw, ExternalLink, CheckCircle, XCircle, AlertCircle, Wifi, WifiOff, Check, Mail } from 'lucide-react';
+import { Calendar, Plus, Trash2, RefreshCw, ExternalLink, CheckCircle, XCircle, AlertCircle, Wifi, WifiOff, Check, Mail, Apple, HelpCircle, X } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
+import Input from '../ui/Input';
+import AppleCalendarHelpModal from './AppleCalendarHelpModal';
 import { api } from '../../services/api';
 
 const CalendarSettings = () => {
@@ -10,6 +12,15 @@ const CalendarSettings = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncCompleted, setSyncCompleted] = useState(false);
+  
+  // Apple Calendar specific state
+  const [showAppleHelpModal, setShowAppleHelpModal] = useState(false);
+  const [showAppleConnectForm, setShowAppleConnectForm] = useState(false);
+  const [appleCredentials, setAppleCredentials] = useState({
+    apple_id: '',
+    app_specific_password: ''
+  });
+  const [isTestingApple, setIsTestingApple] = useState(false);
 
   useEffect(() => {
     fetchConnections();
@@ -117,6 +128,75 @@ const CalendarSettings = () => {
     }
   };
 
+  // Apple Calendar functions
+  const handleShowAppleConnect = () => {
+    setShowAppleConnectForm(true);
+    setAppleCredentials({ apple_id: '', app_specific_password: '' });
+  };
+
+  const handleTestAppleConnection = async () => {
+    if (!appleCredentials.apple_id || !appleCredentials.app_specific_password) {
+      alert('Please enter both Apple ID and app-specific password.');
+      return;
+    }
+
+    try {
+      setIsTestingApple(true);
+      const response = await api.post('/me/calendar/apple/test', appleCredentials);
+      
+      if (response.success) {
+        alert('✅ Connection test successful! You can now connect your Apple Calendar.');
+      } else {
+        alert('❌ Connection test failed: ' + response.error);
+      }
+    } catch (error) {
+      console.error('Apple connection test failed:', error);
+      alert('❌ Connection test failed. Please check your credentials and try again.');
+    } finally {
+      setIsTestingApple(false);
+    }
+  };
+
+  const handleConnectApple = async () => {
+    if (!appleCredentials.apple_id || !appleCredentials.app_specific_password) {
+      alert('Please enter both Apple ID and app-specific password.');
+      return;
+    }
+
+    try {
+      setIsConnecting(true);
+      const response = await api.post('/me/calendar/apple/connect', appleCredentials);
+      
+      if (response.connection) {
+        alert('✅ Apple Calendar connected successfully!');
+        setShowAppleConnectForm(false);
+        setAppleCredentials({ apple_id: '', app_specific_password: '' });
+        await fetchConnections();
+      }
+    } catch (error) {
+      console.error('Failed to connect Apple Calendar:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to connect Apple Calendar. Please try again.';
+      alert('❌ ' + errorMessage);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnectApple = async () => {
+    if (!confirm('Are you sure you want to disconnect your Apple Calendar? This will remove all cached events.')) {
+      return;
+    }
+
+    try {
+      await api.delete('/me/calendar/apple/disconnect');
+      await fetchConnections();
+      alert('Apple Calendar disconnected successfully.');
+    } catch (error) {
+      console.error('Failed to disconnect Apple Calendar:', error);
+      alert('Failed to disconnect Apple Calendar. Please try again.');
+    }
+  };
+
   const handleSyncCalendars = async () => {
     try {
       setIsSyncing(true);
@@ -179,7 +259,8 @@ const CalendarSettings = () => {
 
   const googleConnection = connections.find(conn => conn.provider === 'google');
   const microsoftConnection = connections.find(conn => conn.provider === 'microsoft');
-  const hasActiveConnection = googleConnection?.status === 'active' || microsoftConnection?.status === 'active';
+  const appleConnection = connections.find(conn => conn.provider === 'apple');
+  const hasActiveConnection = googleConnection?.status === 'active' || microsoftConnection?.status === 'active' || appleConnection?.status === 'active';
 
   if (isLoading) {
     return (
@@ -346,11 +427,156 @@ const CalendarSettings = () => {
                 icon={Plus}
                 disabled={true}
               >
-                Connect Microsoft Outlook (Coming Soon)
+                Coming Soon 
               </Button>
             )}
           </div>
         </div>
+      </Card>
+
+      {/* Apple Calendar Connection */}
+      <Card padding="lg">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center">
+              <Apple className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-1">Apple Calendar</h3>
+              <p className="text-slate-600 text-sm mb-3">
+                Sync your Apple iCloud calendar events to automatically block busy times.
+              </p>
+              
+              {appleConnection && (
+                <div className="flex items-center space-x-4">
+                  <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(appleConnection.status)}`}>
+                    {getStatusIcon(appleConnection.status)}
+                    <span className="ml-2">{getStatusText(appleConnection.status)}</span>
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    Connected {new Date(appleConnection.connected_at).toLocaleDateString()}
+                  </div>
+                  {appleConnection.calendars_count > 0 && (
+                    <div className="text-xs text-slate-500">
+                      {appleConnection.included_calendars_count} of {appleConnection.calendars_count} calendars included
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            {appleConnection?.status === 'active' ? (
+              <>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={ExternalLink}
+                  onClick={() => {
+                    // TODO: Open calendar selection modal
+                    alert('Calendar selection coming soon! All calendars are currently included by default.');
+                  }}
+                >
+                  Manage Calendars
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  icon={Trash2}
+                  onClick={handleDisconnectApple}
+                >
+                  Disconnect
+                </Button>
+              </>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowAppleHelpModal(true)}
+                  className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center space-x-1 transition-colors"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span>How to connect</span>
+                </button>
+                <Button
+                  onClick={handleShowAppleConnect}
+                  loading={isConnecting}
+                  icon={Plus}
+                >
+                  Connect Apple Calendar
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Apple Connection Form */}
+        {showAppleConnectForm && !appleConnection && (
+          <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-sm font-semibold text-slate-900">Connect Apple Calendar</h4>
+              <button
+                onClick={() => setShowAppleConnectForm(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Apple ID Email
+                </label>
+                <Input
+                  type="email"
+                  placeholder="your-apple-id@icloud.com"
+                  value={appleCredentials.apple_id}
+                  onChange={(e) => setAppleCredentials(prev => ({ ...prev, apple_id: e.target.value }))}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  App-Specific Password
+                </label>
+                <Input
+                  type="password"
+                  placeholder="abcd-efgh-ijkl-mnop"
+                  value={appleCredentials.app_specific_password}
+                  onChange={(e) => setAppleCredentials(prev => ({ ...prev, app_specific_password: e.target.value }))}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Need help generating this?{' '}
+                  <button
+                    onClick={() => setShowAppleHelpModal(true)}
+                    className="text-indigo-600 hover:text-indigo-800 font-medium"
+                  >
+                    Click here for step-by-step guide
+                  </button>
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Button
+                  onClick={handleTestAppleConnection}
+                  loading={isTestingApple}
+                  variant="secondary"
+                  size="sm"
+                >
+                  Test Connection
+                </Button>
+                <Button
+                  onClick={handleConnectApple}
+                  loading={isConnecting}
+                  size="sm"
+                >
+                  Connect Calendar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Connection Status Info */}
@@ -406,15 +632,21 @@ const CalendarSettings = () => {
           </div>
           <h3 className="text-lg font-semibold text-slate-900 mb-2">More Integrations Coming Soon</h3>
           <p className="text-slate-600 mb-4">
-            We're working on adding support for Microsoft Outlook, Apple Calendar, and other popular calendar services.
+            We're working on adding support for more calendar services and productivity tools.
           </p>
           <div className="flex items-center justify-center space-x-4 text-xs text-slate-500">
-            <span>• Microsoft Outlook</span>
-            <span>• Apple Calendar</span>
-            <span>• CalDAV</span>
+            <span>• Office 365</span>
+            <span>• Exchange</span>
+            <span>• Custom CalDAV</span>
           </div>
         </div>
       </Card>
+
+      {/* Apple Calendar Help Modal */}
+      <AppleCalendarHelpModal
+        isOpen={showAppleHelpModal}
+        onClose={() => setShowAppleHelpModal(false)}
+      />
     </div>
   );
 };

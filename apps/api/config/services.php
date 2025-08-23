@@ -53,4 +53,11 @@ return [
         'tenant' => env('MICROSOFT_TENANT_ID', 'common'), // 'common' for multi-tenant, or specific tenant ID
     ],
 
+    'apple' => [
+        'caldav_server' => env('APPLE_CALDAV_SERVER', 'https://caldav.icloud.com'),
+        'carddav_server' => env('APPLE_CARDDAV_SERVER', 'https://contacts.icloud.com'),
+        'principal_url_template' => env('APPLE_PRINCIPAL_URL', 'https://caldav.icloud.com/{apple_id}/principal/'),
+        'calendar_home_url_template' => env('APPLE_CALENDAR_HOME_URL', 'https://caldav.icloud.com/{apple_id}/calendars/'),
+    ],
+
 ];

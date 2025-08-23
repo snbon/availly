@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\Calendar\GoogleCalendarService;
 use App\Services\Calendar\MicrosoftCalendarService;
+use App\Services\Calendar\AppleCalendarService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -12,13 +13,16 @@ class CalendarConnectionsController extends Controller
 {
     private GoogleCalendarService $googleCalendarService;
     private MicrosoftCalendarService $microsoftCalendarService;
+    private AppleCalendarService $appleCalendarService;
 
     public function __construct(
         GoogleCalendarService $googleCalendarService,
-        MicrosoftCalendarService $microsoftCalendarService
+        MicrosoftCalendarService $microsoftCalendarService,
+        AppleCalendarService $appleCalendarService
     ) {
         $this->googleCalendarService = $googleCalendarService;
         $this->microsoftCalendarService = $microsoftCalendarService;
+        $this->appleCalendarService = $appleCalendarService;
     }
 
     /**
@@ -76,6 +80,8 @@ class CalendarConnectionsController extends Controller
             $calendars = $this->googleCalendarService->getUserCalendars($connection);
         } elseif ($connection->provider === 'microsoft') {
             $calendars = $this->microsoftCalendarService->getUserCalendars($connection);
+        } elseif ($connection->provider === 'apple') {
+            $calendars = $this->appleCalendarService->getUserCalendars($connection);
         }
 
         // Merge with stored inclusion preferences
@@ -241,6 +247,9 @@ class CalendarConnectionsController extends Controller
                 break;
             case 'microsoft':
                 $this->microsoftCalendarService->syncUserEvents($user);
+                break;
+            case 'apple':
+                $this->appleCalendarService->syncUserEvents($user);
                 break;
             default:
                 throw new \InvalidArgumentException("Unsupported calendar provider: {$provider}");

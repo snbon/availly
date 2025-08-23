@@ -64,6 +64,12 @@ Route::middleware('auth:sanctum')->group(function () {
                 // Microsoft Calendar OAuth
                 Route::post('/microsoft/connect', [\App\Http\Controllers\Auth\MicrosoftAuthController::class, 'redirect']);
                 Route::delete('/microsoft/disconnect', [\App\Http\Controllers\Auth\MicrosoftAuthController::class, 'disconnect']);
+
+                // Apple Calendar CalDAV
+                Route::post('/apple/connect', [\App\Http\Controllers\Auth\AppleAuthController::class, 'connect']);
+                Route::post('/apple/test', [\App\Http\Controllers\Auth\AppleAuthController::class, 'testConnection']);
+                Route::get('/apple/status', [\App\Http\Controllers\Auth\AppleAuthController::class, 'status']);
+                Route::delete('/apple/disconnect', [\App\Http\Controllers\Auth\AppleAuthController::class, 'disconnect']);
     });
 });
 
