@@ -3,7 +3,7 @@ import { Settings, LogOut } from 'lucide-react';
 import Logo from '../Logo';
 import { brandGradients, brandTypography, brandShadows } from '../../theme/brand';
 
-const DashboardHeader = ({ user, onLogout }) => {
+const DashboardHeader = ({ user, onLogout, onSettingsClick }) => {
   const getUserInitials = (name) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -23,7 +23,10 @@ const DashboardHeader = ({ user, onLogout }) => {
 
           <div className="flex items-center space-x-4">
             {/* Settings */}
-            <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+            <button 
+              onClick={onSettingsClick}
+              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+            >
               <Settings className="w-6 h-6" />
             </button>
 

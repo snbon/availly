@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import EmailVerification from './pages/EmailVerification';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
 import PublicCalendar from './pages/PublicCalendar';
 
 function App() {
@@ -39,6 +40,14 @@ function App() {
               element={
                 <ProtectedRoute requireAuth={true} requireVerification={true}>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute requireAuth={true} requireVerification={true}>
+                  <Settings />
                 </ProtectedRoute>
               } 
             />

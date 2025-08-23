@@ -8,6 +8,8 @@ use Carbon\Carbon;
 
 class EventsCache extends Model
 {
+    protected $table = 'events_cache';
+
     protected $fillable = [
         'user_id',
         'provider',

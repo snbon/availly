@@ -101,6 +101,10 @@ const Dashboard = () => {
     { id: 'analytics', label: 'Analytics', icon: TrendingUp }
   ];
 
+  const handleSettingsClick = () => {
+    navigate('/settings');
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -118,7 +122,7 @@ const Dashboard = () => {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-300/5 rounded-full blur-3xl"></div>
       </div>
       
-      <DashboardHeader user={user} onLogout={handleLogout} />
+      <DashboardHeader user={user} onLogout={handleLogout} onSettingsClick={handleSettingsClick} />
       <NavigationTabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -8,6 +8,9 @@ const CalendarPreview = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState([]);
   const [availabilityRules, setAvailabilityRules] = useState([]);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  
+
   const [loading, setLoading] = useState(true);
   const [hasAvailability, setHasAvailability] = useState(false);
   const scrollContainerRef = useRef(null);
@@ -34,21 +37,37 @@ const CalendarPreview = () => {
   }, [currentDate]);
 
   useEffect(() => {
-    // Scroll to current hour positioned at 25% of the view
+    if (weekDates.length > 0) {
+      fetchCalendarEvents();
+    }
+  }, [weekDates]);
+
+  useEffect(() => {
+    // Auto-scroll to current time (only if today is in the current week view)
     if (scrollContainerRef.current && weekDates.length > 0) {
       const now = new Date();
-      const currentHour = now.getHours();
-      const hourHeight = 60; // Height of each hour slot
-      const containerHeight = scrollContainerRef.current.clientHeight;
+      const today = weekDates.find(date => isToday(date));
       
-      // Position current hour at 25% of the container height
-      const targetPosition = (currentHour * hourHeight) - (containerHeight * 0.25);
-      
-      // Ensure we don't scroll beyond the bounds
-      const maxScroll = (24 * hourHeight) - containerHeight;
-      const scrollPosition = Math.max(0, Math.min(targetPosition, maxScroll));
-      
-      scrollContainerRef.current.scrollTop = scrollPosition;
+      if (today) {
+        // Get precise current time including minutes
+        const currentTime = getCurrentTime(); // Returns decimal hours (e.g., 13.5 for 1:30 PM)
+        const containerHeight = scrollContainerRef.current.clientHeight;
+        
+        // Position current time at 25% of the container height for better context
+        const targetPosition = getTimePosition(currentTime) - (containerHeight * 0.25);
+        
+        // Ensure we don't scroll beyond the bounds
+        const maxScroll = (24 * 60) - containerHeight; // 24 hours * 60px per hour
+        const scrollPosition = Math.max(0, Math.min(targetPosition, maxScroll));
+        
+        // Use smooth scrolling for better UX
+        setTimeout(() => {
+          scrollContainerRef.current.scrollTo({
+            top: scrollPosition,
+            behavior: 'smooth'
+          });
+        }, 100); // Small delay to ensure rendering is complete
+      }
     }
   }, [weekDates]);
 
@@ -64,6 +83,28 @@ const CalendarPreview = () => {
       setHasAvailability(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCalendarEvents = async () => {
+    try {
+      // Get date range for the current week
+      const startDate = weekDates[0];
+      const endDate = weekDates[6];
+      
+      if (!startDate || !endDate) {
+        return;
+      }
+
+      const startDateStr = startDate.toISOString().split('T')[0];
+      const endDateStr = endDate.toISOString().split('T')[0];
+      
+      const response = await api.get(`/me/calendar/events?start_date=${startDateStr}&end_date=${endDateStr}`);
+      
+      setCalendarEvents(response.events || []);
+    } catch (error) {
+      console.error('Failed to fetch calendar events:', error);
+      setCalendarEvents([]);
     }
   };
 
@@ -115,6 +156,47 @@ const CalendarPreview = () => {
     } else {
       return `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}, ${start.getFullYear()}`;
     }
+  };
+
+  // Get calendar events for a specific date
+  const getCalendarEvents = (date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    
+    const filteredEvents = calendarEvents.filter(event => {
+      const eventStart = new Date(event.start);
+      const eventEnd = new Date(event.end);
+      const eventDateStr = eventStart.toISOString().split('T')[0];
+      
+      return eventDateStr === dateStr || 
+             (eventStart <= date && eventEnd > date);
+    });
+    
+    return filteredEvents.map(event => {
+      const eventStart = new Date(event.start);
+      const eventEnd = new Date(event.end);
+      
+      // Convert to decimal hours for positioning
+      const startDecimal = eventStart.getHours() + (eventStart.getMinutes() / 60);
+      const endDecimal = eventEnd.getHours() + (eventEnd.getMinutes() / 60);
+      
+      return {
+        id: event.id,
+        title: event.title,
+        start: startDecimal,
+        end: endDecimal,
+        allDay: event.all_day,
+        provider: event.provider,
+        timeRange: event.all_day ? 'All day' : `${eventStart.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit', 
+          hour12: true 
+        })} - ${eventEnd.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit', 
+          hour12: true 
+        })}`
+      };
+    });
   };
 
   // Get availability blocks for a specific date
@@ -297,6 +379,7 @@ const CalendarPreview = () => {
               
               const today = isToday(date);
               const availabilityBlocks = getAvailabilityBlocks(date);
+              const dayEvents = getCalendarEvents(date);
               const currentTime = getCurrentTime();
               
               return (
@@ -331,6 +414,31 @@ const CalendarPreview = () => {
                       </div>
                     </div>
                   ))}
+
+                  {/* Calendar Events */}
+                  {dayEvents.map((event, eventIndex) => (
+                    <div
+                      key={`event-${event.id}-${eventIndex}`}
+                      className="absolute left-1 right-1 bg-blue-200 border border-blue-300 rounded-md shadow-sm hover:bg-blue-300 cursor-pointer transition-colors z-30"
+                      style={{
+                        top: event.allDay ? '2px' : `${getTimePosition(event.start)}px`,
+                        height: event.allDay ? '20px' : `${getBlockHeight(event.start, event.end) - 2}px`
+                      }}
+                      title={`${event.title} (${event.provider})`}
+                    >
+                      <div className="p-2 text-xs font-medium text-blue-800">
+                        <div className="truncate font-semibold">{event.title}</div>
+                        {!event.allDay && (
+                          <div className="text-blue-600 mt-1">
+                            {event.timeRange}
+                          </div>
+                        )}
+                        <div className="text-blue-500 text-[10px] mt-1 capitalize">
+                          {event.provider}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                   
                   {/* Current time indicator */}
                   {today && currentTime >= 0 && currentTime <= 24 && (
@@ -355,10 +463,14 @@ const CalendarPreview = () => {
       </div>
       
       <div className="mt-4 flex items-center justify-between text-sm">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 flex-wrap gap-y-2">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-3 bg-green-200 border border-green-300 rounded"></div>
             <span className="text-slate-600">Available time blocks</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-3 bg-blue-200 border border-blue-300 rounded"></div>
+            <span className="text-slate-600">Calendar events</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-purple-100 rounded"></div>

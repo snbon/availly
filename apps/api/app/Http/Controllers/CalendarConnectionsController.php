@@ -195,8 +195,8 @@ class CalendarConnectionsController extends Controller
 
         $events = $user->eventsCache()
             ->inDateRange(
-                \Carbon\Carbon::parse($request->start_date),
-                \Carbon\Carbon::parse($request->end_date)
+                \Carbon\Carbon::parse($request->start_date)->startOfDay(),
+                \Carbon\Carbon::parse($request->end_date)->endOfDay()
             )
             ->orderBy('start_at_utc')
             ->get()
