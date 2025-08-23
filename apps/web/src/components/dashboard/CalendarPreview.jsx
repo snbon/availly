@@ -419,21 +419,26 @@ const CalendarPreview = () => {
                   {dayEvents.map((event, eventIndex) => (
                     <div
                       key={`event-${event.id}-${eventIndex}`}
-                      className="absolute left-1 right-1 bg-blue-200 border border-blue-300 rounded-md shadow-sm hover:bg-blue-300 cursor-pointer transition-colors z-30"
+                      className={`absolute left-1 right-1 bg-blue-200 border border-blue-300 rounded-md shadow-sm hover:bg-blue-300 cursor-pointer transition-colors z-30 overflow-hidden ${
+                        event.allDay ? 'bg-blue-100 border-blue-200' : ''
+                      }`}
                       style={{
                         top: event.allDay ? '2px' : `${getTimePosition(event.start)}px`,
-                        height: event.allDay ? '20px' : `${getBlockHeight(event.start, event.end) - 2}px`
+                        height: event.allDay ? 'calc(100% - 4px)' : `${Math.max(getBlockHeight(event.start, event.end) - 2, 50)}px`,
+                        minHeight: event.allDay ? 'auto' : '50px'
                       }}
                       title={`${event.title} (${event.provider})`}
                     >
-                      <div className="p-2 text-xs font-medium text-blue-800">
-                        <div className="truncate font-semibold">{event.title}</div>
+                      <div className={`p-1.5 text-xs font-medium text-blue-800 h-full ${
+                        event.allDay ? 'flex flex-col justify-center' : 'flex flex-col'
+                      }`}>
+                        <div className="truncate font-semibold leading-tight">{event.title}</div>
                         {!event.allDay && (
-                          <div className="text-blue-600 mt-1">
+                          <div className="text-blue-600 text-[10px] leading-tight">
                             {event.timeRange}
                           </div>
                         )}
-                        <div className="text-blue-500 text-[10px] mt-1 capitalize">
+                        <div className="text-blue-500 text-[9px] capitalize truncate leading-tight">
                           {event.provider}
                         </div>
                       </div>

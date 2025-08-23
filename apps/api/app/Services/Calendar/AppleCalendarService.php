@@ -708,8 +708,13 @@ class AppleCalendarService
             $isAllDay = !$dtstart->hasTime();
 
             if ($isAllDay) {
-                // For all-day events, adjust the end time to be inclusive
-                $endAt = $endAt->subSecond();
+                // For all-day events, if end is same day as start, make it end of day
+                if ($endAt->isSameDay($startAt)) {
+                    $endAt = $startAt->copy()->endOfDay();
+                } else {
+                    // Multi-day all-day events, subtract a second to make end date inclusive
+                    $endAt = $endAt->subSecond();
+                }
             }
 
             // Handle recurring events
@@ -913,6 +918,11 @@ class AppleCalendarService
                 ->addSeconds($originalStart->secondsSinceMidnight());
 
             $occurrenceEnd = $occurrenceStart->copy()->addSeconds($eventDuration);
+
+            // Fix all-day event end times
+            if ($isAllDay && $occurrenceEnd->isSameDay($occurrenceStart)) {
+                $occurrenceEnd = $occurrenceStart->copy()->endOfDay();
+            }
 
             // Only include if within sync range
             if ($occurrenceStart->between($syncStart, $syncEnd)) {
