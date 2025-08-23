@@ -77,10 +77,6 @@ const Settings = () => {
                 <ArrowLeft className="w-6 h-6" />
               </button>
               <Logo />
-              <div>
-                <h1 className={`text-2xl ${brandTypography.heading} text-slate-900`}>Settings</h1>
-                <p className="text-slate-500 text-sm">Manage your account and preferences</p>
-              </div>
             </div>
           </div>
         </div>

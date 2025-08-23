@@ -15,10 +15,7 @@ const DashboardHeader = ({ user, onLogout, onSettingsClick }) => {
         <div className="flex justify-between items-center py-6">
           <div className="flex items-center space-x-4">
             <Logo />
-            <div>
-              <h1 className={`text-2xl ${brandTypography.heading} text-slate-900`}>Availly</h1>
-              <p className="text-slate-500 text-sm">Calendar Management Dashboard</p>
-            </div>
+           
           </div>
 
           <div className="flex items-center space-x-4">
