@@ -1,4 +1,4 @@
-# Implementation Method — myfreeslots
+# Implementation Method — Availly
 
 ## Guiding Principles
 - Build the smallest lovable product that fully solves the "share availability politely" problem.

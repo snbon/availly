@@ -189,7 +189,7 @@ const Login = () => {
         <div className="text-center mt-12">
           <p className="text-slate-500 text-sm flex items-center justify-center">
             <Sparkles className="w-4 h-4 mr-2 text-purple-400" />
-            © 2024 MyFreeSlots. Crafted with excellence.
+            © 2024 Availly. Crafted with excellence.
             <Sparkles className="w-4 h-4 ml-2 text-purple-400" />
           </p>
         </div>

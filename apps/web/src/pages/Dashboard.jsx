@@ -50,7 +50,7 @@ const Dashboard = () => {
   };
 
   const handleCopyLink = () => {
-    const link = `https://myfreeslots.me/${dashboardData.userSlug}`;
+    const link = `https://Availly.me/${dashboardData.userSlug}`;
     navigator.clipboard.writeText(link).then(() => {
       // Could show a toast notification here
       console.log('Link copied to clipboard');
@@ -70,7 +70,7 @@ const Dashboard = () => {
     },
     { 
       label: 'Copy Link', 
-      value: `myfreeslots.me/${dashboardData.userSlug}`, 
+      value: `Availly.me/${dashboardData.userSlug}`, 
       change: dashboardData.hasAvailability ? 'Ready to share' : 'Set availability first', 
       changeType: dashboardData.hasAvailability ? 'positive' : 'warning',
       icon: LinkIcon, 

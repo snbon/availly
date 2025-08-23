@@ -21,7 +21,7 @@ class EmailTextGenerator
 
     public function generateEmailText(string $username, string $context = ''): array
     {
-        $defaultText = "You can view my availability in the following link: https://myfreeslots.me/{$username}";
+        $defaultText = "You can view my availability in the following link: https://Availly.me/{$username}";
 
         // Check if API key is configured
         if (empty($this->apiKey)) {
@@ -41,8 +41,8 @@ class EmailTextGenerator
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->apiKey,
                     'Content-Type' => 'application/json',
-                    'HTTP-Referer' => 'https://myfreeslots.me',
-                    'X-Title' => 'MyFreeSlots Email Generator'
+                    'HTTP-Referer' => 'https://Availly.me',
+                    'X-Title' => 'Availly Email Generator'
                 ],
                 'json' => [
                     'model' => 'deepseek/deepseek-chat-v3-0324:free',
@@ -115,7 +115,7 @@ class EmailTextGenerator
         $basePrompt .= "- NO explanations, alternatives, or additional commentary\n";
         $basePrompt .= "- NO quotes around the text\n";
         $basePrompt .= "- Maximum 2 sentences\n";
-        $basePrompt .= "- Must include the exact link: https://myfreeslots.me/{$username}\n";
+        $basePrompt .= "- Must include the exact link: https://Availly.me/{$username}\n";
         $basePrompt .= "- Sound natural and professional\n";
         $basePrompt .= "- End with a period\n\n";
 
@@ -124,9 +124,9 @@ class EmailTextGenerator
         }
 
         $basePrompt .= "Examples of GOOD responses (copy-paste ready):\n";
-        $basePrompt .= "Hi! You can check my availability and book a time that works for both of us here: https://myfreeslots.me/{$username}\n";
-        $basePrompt .= "Feel free to view my calendar and schedule a meeting at your convenience: https://myfreeslots.me/{$username}\n";
-        $basePrompt .= "Here's my availability calendar where you can pick a time that suits you: https://myfreeslots.me/{$username}\n\n";
+        $basePrompt .= "Hi! You can check my availability and book a time that works for both of us here: https://Availly.me/{$username}\n";
+        $basePrompt .= "Feel free to view my calendar and schedule a meeting at your convenience: https://Availly.me/{$username}\n";
+        $basePrompt .= "Here's my availability calendar where you can pick a time that suits you: https://Availly.me/{$username}\n\n";
 
         $basePrompt .= "Examples of BAD responses (do NOT do this):\n";
         $basePrompt .= "\"Here's a great option: [text]\" (NO explanations)\n";
@@ -166,7 +166,7 @@ class EmailTextGenerator
             }
 
             // If the line contains the username link, it's likely the main text
-            if (strpos($line, "myfreeslots.me/{$username}") !== false) {
+            if (strpos($line, "Availly.me/{$username}") !== false) {
                 $cleanLines[] = $line;
                 break; // We found the main text, stop here
             }

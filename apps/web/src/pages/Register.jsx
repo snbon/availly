@@ -111,7 +111,7 @@ const Register = () => {
           <div className="flex justify-center mb-8">
             <Logo size="xl" variant="default" />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">Join MyFreeSlots</h1>
+          <h1 className="text-4xl font-bold text-slate-900 mb-3">Join Availly</h1>
           <p className="text-slate-600 text-xl">Start your productivity journey today</p>
         </div>
 
@@ -277,7 +277,7 @@ const Register = () => {
         <div className="text-center mt-12">
           <p className="text-slate-500 text-sm flex items-center justify-center">
             <Sparkles className="w-4 h-4 mr-2 text-purple-400" />
-            © 2024 MyFreeSlots. Crafted with excellence.
+            © 2024 Availly. Crafted with excellence.
             <Sparkles className="w-4 h-4 ml-2 text-purple-400" />
           </p>
         </div>

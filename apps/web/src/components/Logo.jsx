@@ -37,7 +37,7 @@ const Logo = ({ size = 'md', showText = true, variant = 'default' }) => {
       {showText && (
         <div>
           <h1 className={`${sizes[size].text} font-bold ${textColor} tracking-tight`}>
-            My<span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Free</span>Slots
+            <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Availly</span>
           </h1>
           {size === 'lg' || size === 'xl' ? (
             <p className="text-sm text-slate-600 font-medium">Calendar Management</p>

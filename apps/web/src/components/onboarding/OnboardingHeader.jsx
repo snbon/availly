@@ -9,7 +9,7 @@ const OnboardingHeader = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl mb-6 shadow-xl">
             <Calendar className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">Welcome to MyFreeSlots</h1>
+          <h1 className="text-4xl font-bold text-slate-900 mb-3">Welcome to Availly</h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
             Let's get you set up in just a few steps to start managing your availability like a pro
           </p>

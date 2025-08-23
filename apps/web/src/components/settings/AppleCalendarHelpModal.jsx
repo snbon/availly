@@ -46,7 +46,7 @@ const AppleCalendarHelpModal = ({ isOpen, onClose }) => {
       title: "Generate a new password",
       description: "Click the '+' button or 'Generate Password' button to create a new app-specific password.",
       substeps: [
-        "Enter a label like 'MyFreeSlots Calendar' to identify this password",
+        "Enter a label like 'Availly Calendar' to identify this password",
         "Click 'Create' or 'Generate'"
       ]
     },

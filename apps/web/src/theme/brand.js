@@ -1,4 +1,4 @@
-// MyFreeSlots Brand Theme
+// Availly Brand Theme
 export const brandColors = {
   primary: {
     50: '#f8fafc',

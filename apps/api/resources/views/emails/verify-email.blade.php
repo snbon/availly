@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email - MyFreeSlots</title>
+    <title>Verify Your Email - Availly</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -84,7 +84,7 @@
             <div class="logo">
                 📅
             </div>
-            <h1>Welcome to MyFreeSlots!</h1>
+            <h1>Welcome to Availly!</h1>
             <p>Hi {{ $user->name }}, please verify your email address to get started.</p>
         </div>
 
@@ -104,8 +104,8 @@
         </div>
 
         <div class="footer">
-            <p>If you didn't create an account with MyFreeSlots, you can safely ignore this email.</p>
-            <p>&copy; 2024 MyFreeSlots. Crafted with excellence.</p>
+            <p>If you didn't create an account with Availly, you can safely ignore this email.</p>
+            <p>&copy; 2024 Availly. Crafted with excellence.</p>
         </div>
     </div>
 </body>

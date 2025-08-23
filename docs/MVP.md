@@ -1,15 +1,15 @@
-# MVP — myfreeslots
+# MVP — Availly
 
 ## Summary
 A read-only, professional availability viewer. Candidates configure "green" availability windows and connect calendars. Recruiters open a shareable link and see when the candidate is generally free overlaid with busy times — no booking flow.
 
-- Dashboard (private app): `app.myfreeslots.me`
-- Public link: `myfreeslots.me/[slug]`, slug: `^[a-z0-9-]{4,10}$` (unique)
+- Dashboard (private app): `app.Availly.me`
+- Public link: `Availly.me/[slug]`, slug: `^[a-z0-9-]{4,10}$` (unique)
 
 ## User Stories
 
 ### Public (Recruiter)
-- As a recruiter, I can open `myfreeslots.me/[slug]` and see a clean calendar (week default, month toggle).
+- As a recruiter, I can open `Availly.me/[slug]` and see a clean calendar (week default, month toggle).
 - I see **green** default availability and **red/grey** busy overlays from connected calendars.
 - When I hover on a green block, I see a tooltip: "Hey, I'm free here 🙂".
 - The page is read-only; I'll propose a time via my own calendar system.
