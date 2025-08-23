@@ -41,7 +41,11 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+        // Create an error object that includes the response data
+        const error = new Error(data.message || 'Something went wrong');
+        error.status = response.status;
+        error.data = data;
+        throw error;
       }
 
       return data;
@@ -136,6 +140,32 @@ class ApiService {
   async getPublicAvailability(slug) {
     return this.request(`/public/${slug}/availability`);
   }
+
+  // HTTP method helpers
+  async get(endpoint) {
+    return this.request(endpoint, { method: 'GET' });
+  }
+
+  async post(endpoint, data = {}) {
+    return this.request(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async put(endpoint, data = {}) {
+    return this.request(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async delete(endpoint) {
+    return this.request(endpoint, { method: 'DELETE' });
+  }
 }
 
-export default new ApiService();
+const apiService = new ApiService();
+
+export { apiService as api };
+export default apiService;

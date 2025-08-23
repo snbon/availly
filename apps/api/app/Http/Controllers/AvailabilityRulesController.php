@@ -4,36 +4,79 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Models\AvailabilityRule;
 
 class AvailabilityRulesController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        // TODO: Implement actual availability rules retrieval
+        $user = $request->user();
+        $rules = $user->availabilityRules()
+            ->orderBy('weekday')
+            ->orderBy('start_time_local')
+            ->get();
+
         return response()->json([
-            'rules' => [
-                [
-                    'id' => 1,
-                    'weekday' => 1,
-                    'start_time_local' => '09:00:00',
-                    'end_time_local' => '12:00:00'
-                ],
-                [
-                    'id' => 2,
-                    'weekday' => 1,
-                    'start_time_local' => '15:00:00',
-                    'end_time_local' => '18:00:00'
-                ]
-            ]
+            'rules' => $rules->map(function ($rule) {
+                return [
+                    'id' => $rule->id,
+                    'weekday' => $rule->weekday,
+                    'weekday_name' => $rule->weekday_name,
+                    'start_time_local' => $rule->start_time_local,
+                    'end_time_local' => $rule->end_time_local,
+                    'created_at' => $rule->created_at,
+                    'updated_at' => $rule->updated_at
+                ];
+            })
         ]);
     }
 
     public function store(Request $request): JsonResponse
     {
-        // TODO: Implement actual availability rule creation
+        $user = $request->user();
+
+        $request->validate([
+            'rules' => 'required|array',
+            'rules.*.weekday' => 'required|integer|min:0|max:6',
+            'rules.*.start_time' => 'required|string|date_format:H:i',
+            'rules.*.end_time' => 'required|string|date_format:H:i',
+        ]);
+
+        // Clear existing rules for the user
+        $user->availabilityRules()->delete();
+
+        // Create new rules
+        $createdRules = [];
+        foreach ($request->rules as $ruleData) {
+            $rule = $user->availabilityRules()->create([
+                'weekday' => $ruleData['weekday'],
+                'start_time_local' => $ruleData['start_time'],
+                'end_time_local' => $ruleData['end_time']
+            ]);
+
+            $createdRules[] = [
+                'id' => $rule->id,
+                'weekday' => $rule->weekday,
+                'weekday_name' => $rule->weekday_name,
+                'start_time_local' => $rule->start_time_local,
+                'end_time_local' => $rule->end_time_local
+            ];
+        }
+
         return response()->json([
-            'message' => 'Availability rule created successfully',
-            'rule' => $request->all()
+            'message' => 'Availability rules saved successfully',
+            'rules' => $createdRules
         ], 201);
+    }
+
+    public function destroy(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        $rule = $user->availabilityRules()->findOrFail($id);
+        $rule->delete();
+
+        return response()->json([
+            'message' => 'Availability rule deleted successfully'
+        ]);
     }
 }

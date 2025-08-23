@@ -1,7 +1,7 @@
 import React from 'react';
-import { Bell, Settings, LogOut, Search } from 'lucide-react';
+import { Settings, LogOut } from 'lucide-react';
 import Logo from '../Logo';
-import { brandGradients, brandTypography, brandShadows, brandComponents } from '../../theme/brand';
+import { brandGradients, brandTypography, brandShadows } from '../../theme/brand';
 
 const DashboardHeader = ({ user, onLogout }) => {
   const getUserInitials = (name) => {
@@ -22,22 +22,6 @@ const DashboardHeader = ({ user, onLogout }) => {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Search Bar */}
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className={`w-64 pl-10 pr-4 py-2 ${brandComponents.input.replace('w-full', '')}`}
-              />
-            </div>
-
-            {/* Notifications */}
-            <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
-              <Bell className="w-6 h-6" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-
             {/* Settings */}
             <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
               <Settings className="w-6 h-6" />

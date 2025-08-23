@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Calendar, Clock, Users, Link as LinkIcon, TrendingUp, CalendarDays, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Users, Link as LinkIcon, TrendingUp, CalendarDays, BarChart3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../services/api';
 import { brandGradients } from '../theme/brand';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import NavigationTabs from '../components/dashboard/NavigationTabs';
@@ -11,59 +12,87 @@ import TabContent from '../components/dashboard/TabContent';
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState({
+    totalViews: 0,
+    hasAvailability: false,
+    thisWeekBookings: 0,
+    userSlug: 'username'
+  });
   
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch availability rules to check if user has set availability
+      const availabilityResponse = await api.getAvailabilityRules();
+      const hasAvailability = (availabilityResponse.rules || []).length > 0;
+      
+      // For now, we'll use placeholder data for views and bookings
+      // These would come from analytics endpoints when implemented
+      setDashboardData({
+        totalViews: 0, // TODO: Implement analytics API
+        hasAvailability,
+        thisWeekBookings: 0, // TODO: Implement bookings API
+        userSlug: user?.email?.split('@')[0] || 'username' // Use email prefix as slug for now
+      });
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    const link = `https://myfreeslots.me/${dashboardData.userSlug}`;
+    navigator.clipboard.writeText(link).then(() => {
+      // Could show a toast notification here
+      console.log('Link copied to clipboard');
+    });
+  };
+
   const stats = [
     { 
       label: 'Total Views', 
-      value: '1,234', 
-      change: '+12%', 
-      changeType: 'positive',
+      value: dashboardData.totalViews === 0 ? 'No data yet' : dashboardData.totalViews.toLocaleString(), 
+      change: dashboardData.totalViews === 0 ? 'Share your link to start' : '+12%', 
+      changeType: dashboardData.totalViews === 0 ? 'neutral' : 'positive',
       icon: Users, 
       color: 'blue',
       bgColor: 'bg-blue-50',
       iconColor: 'text-blue-600'
     },
     { 
-      label: 'Active Links', 
-      value: '5', 
-      change: '+2', 
-      changeType: 'positive',
+      label: 'Copy Link', 
+      value: `myfreeslots.me/${dashboardData.userSlug}`, 
+      change: dashboardData.hasAvailability ? 'Ready to share' : 'Set availability first', 
+      changeType: dashboardData.hasAvailability ? 'positive' : 'warning',
       icon: LinkIcon, 
-      color: 'green',
-      bgColor: 'bg-green-50',
-      iconColor: 'text-green-600'
+      color: dashboardData.hasAvailability ? 'green' : 'orange',
+      bgColor: dashboardData.hasAvailability ? 'bg-green-50' : 'bg-orange-50',
+      iconColor: dashboardData.hasAvailability ? 'text-green-600' : 'text-orange-600',
+      isClickable: dashboardData.hasAvailability,
+      onClick: dashboardData.hasAvailability ? handleCopyLink : () => navigate('/onboarding')
     },
     { 
       label: 'This Week', 
-      value: '23', 
-      change: '+8%', 
-      changeType: 'positive',
+      value: dashboardData.thisWeekBookings === 0 ? 'No bookings yet' : dashboardData.thisWeekBookings.toString(), 
+      change: dashboardData.thisWeekBookings === 0 ? 'Bookings will appear here' : '+8%', 
+      changeType: dashboardData.thisWeekBookings === 0 ? 'neutral' : 'positive',
       icon: CalendarDays, 
       color: 'purple',
       bgColor: 'bg-purple-50',
       iconColor: 'text-purple-600'
-    },
-    { 
-      label: 'Avg. Response', 
-      value: '2.4h', 
-      change: '-0.5h', 
-      changeType: 'negative',
-      icon: Clock, 
-      color: 'orange',
-      bgColor: 'bg-orange-50',
-      iconColor: 'text-orange-600'
     }
   ];
 
-  const recentActivity = [
-    { id: 1, action: 'New booking request', time: '2 hours ago', type: 'booking', user: 'John Doe', avatar: 'JD' },
-    { id: 2, action: 'Link shared via email', time: '1 day ago', type: 'share', user: 'Sarah Wilson', avatar: 'SW' },
-    { id: 3, action: 'Availability updated', time: '2 days ago', type: 'update', user: 'Mike Chen', avatar: 'MC' },
-    { id: 4, action: 'Calendar connected', time: '1 week ago', type: 'connect', user: 'Emma Davis', avatar: 'ED' }
-  ];
+
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -94,7 +123,7 @@ const Dashboard = () => {
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'overview' ? (
-          <OverviewTab user={user} stats={stats} recentActivity={recentActivity} />
+          <OverviewTab user={user} stats={stats} />
         ) : (
           <TabContent activeTab={activeTab} />
         )}

@@ -18,8 +18,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [\App\Http\Controllers\Auth\AuthController::class, 'me']);
     Route::post('/auth/logout', [\App\Http\Controllers\Auth\AuthController::class, 'logout']);
 
+    // Profile routes
+    Route::get('/me/profile', [\App\Http\Controllers\ProfileController::class, 'show']);
+    Route::put('/me/profile/username', [\App\Http\Controllers\ProfileController::class, 'updateUsername']);
+    Route::post('/me/profile/check-username', [\App\Http\Controllers\ProfileController::class, 'checkUsername']);
+    Route::post('/me/profile/generate-email-text', [\App\Http\Controllers\ProfileController::class, 'generateEmailText']);
+
     Route::get('/me/availability-rules', [\App\Http\Controllers\AvailabilityRulesController::class, 'index']);
     Route::post('/me/availability-rules', [\App\Http\Controllers\AvailabilityRulesController::class, 'store']);
+    Route::delete('/me/availability-rules/{id}', [\App\Http\Controllers\AvailabilityRulesController::class, 'destroy']);
 
     Route::get('/me/exceptions', [\App\Http\Controllers\ExceptionsController::class, 'index']);
     Route::post('/me/exceptions', [\App\Http\Controllers\ExceptionsController::class, 'store']);

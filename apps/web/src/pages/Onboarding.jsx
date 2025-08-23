@@ -5,6 +5,7 @@ import StepIndicator from '../components/onboarding/StepIndicator';
 import WelcomeStep from '../components/onboarding/WelcomeStep';
 import ScheduleStep from '../components/onboarding/ScheduleStep';
 import CompletionStep from '../components/onboarding/CompletionStep';
+import { api } from '../services/api';
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -22,13 +23,13 @@ const Onboarding = () => {
   const navigate = useNavigate();
 
   const days = [
-    { value: 'monday', label: 'Monday' },
-    { value: 'tuesday', label: 'Tuesday' },
-    { value: 'wednesday', label: 'Wednesday' },
-    { value: 'thursday', label: 'Thursday' },
-    { value: 'friday', label: 'Friday' },
-    { value: 'saturday', label: 'Saturday' },
-    { value: 'sunday', label: 'Sunday' }
+    { value: 'monday', label: 'Monday', weekday: 1 },
+    { value: 'tuesday', label: 'Tuesday', weekday: 2 },
+    { value: 'wednesday', label: 'Wednesday', weekday: 3 },
+    { value: 'thursday', label: 'Thursday', weekday: 4 },
+    { value: 'friday', label: 'Friday', weekday: 5 },
+    { value: 'saturday', label: 'Saturday', weekday: 6 },
+    { value: 'sunday', label: 'Sunday', weekday: 0 }
   ];
 
   const steps = [
@@ -72,11 +73,42 @@ const Onboarding = () => {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    // TODO: Save availability rules to backend
-    setTimeout(() => {
-      setIsLoading(false);
+    
+    try {
+      // Convert frontend availability rules to backend format
+      const backendRules = availabilityRules
+        .filter(rule => rule.isActive)
+        .map(rule => {
+          const dayObj = days.find(d => d.value === rule.day);
+          return {
+            weekday: dayObj.weekday,
+            start_time: rule.startTime,
+            end_time: rule.endTime
+          };
+        });
+
+      // Save availability rules to backend
+      await api.post('/me/availability-rules', {
+        rules: backendRules
+      });
+
       navigate('/dashboard');
-    }, 2000);
+    } catch (error) {
+      console.error('Failed to save availability rules:', error);
+      console.error('Error details:', error.data);
+      
+      let errorMessage = 'Failed to save your availability settings. Please try again.';
+      if (error.data && error.data.errors) {
+        const validationErrors = Object.values(error.data.errors).flat();
+        errorMessage = `Validation error: ${validationErrors.join(', ')}`;
+      } else if (error.data && error.data.message) {
+        errorMessage = error.data.message;
+      }
+      
+      alert(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderStepContent = () => {

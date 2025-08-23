@@ -3,6 +3,7 @@
 ## Guiding Principles
 - Build the smallest lovable product that fully solves the "share availability politely" problem.
 - Favor clarity and reliability over feature breadth.
+- Prioritise clean code and structure.
 - Every PR should tie back to the **mission** and **MVP acceptance criteria**.
 
 ## Branching & Commit Strategy
@@ -10,13 +11,7 @@
 - Feature branches: `feat/<short-kebab-summary>`
 - Fix branches: `fix/<short-kebab-summary>`
 - Conventional Commits:
-  - feat: new feature
-  - fix: bug fix
-  - chore: tooling, deps
-  - docs: documentation
-  - refactor: internal changes without behavior change
-  - test: add/improve tests
-  - perf: performance
+  - new feature = new branch
 - Rebase or squash-merge PRs;.
 
 ## PR Process (always)
