@@ -3,10 +3,15 @@ import { Calendar, Plus, Trash2, RefreshCw, ExternalLink, CheckCircle, XCircle, 
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import { AlertContainer } from '../ui';
+import { useAlert } from '../../hooks/useAlert';
 import AppleCalendarHelpModal from './AppleCalendarHelpModal';
 import { api } from '../../services/api';
 
 const CalendarSettings = () => {
+  // Use the new alert system
+  const { alerts, showSuccess, showError, removeAlert } = useAlert();
+  
   const [connections, setConnections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -20,11 +25,39 @@ const CalendarSettings = () => {
     apple_id: '',
     app_specific_password: ''
   });
-  const [isTestingApple, setIsTestingApple] = useState(false);
+
+  const [appleError, setAppleError] = useState(null);
+  const [appleErrorTimer, setAppleErrorTimer] = useState(null);
+  const [appleSuccess, setAppleSuccess] = useState(null);
+  const [appleSuccessTimer, setAppleSuccessTimer] = useState(null);
+  
+  // Global success/error states for all providers
+  const [globalSuccess, setGlobalSuccess] = useState(null);
+  const [globalSuccessTimer, setGlobalSuccessTimer] = useState(null);
+  const [globalError, setGlobalError] = useState(null);
+  const [globalErrorTimer, setGlobalErrorTimer] = useState(null);
 
   useEffect(() => {
     fetchConnections();
   }, []);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (appleErrorTimer) {
+        clearTimeout(appleErrorTimer);
+      }
+      if (appleSuccessTimer) {
+        clearTimeout(appleSuccessTimer);
+      }
+      if (globalSuccessTimer) {
+        clearTimeout(globalSuccessTimer);
+      }
+      if (globalErrorTimer) {
+        clearTimeout(globalErrorTimer);
+      }
+    };
+  }, [appleErrorTimer, appleSuccessTimer, globalSuccessTimer, globalErrorTimer]);
 
   const fetchConnections = async () => {
     try {
@@ -62,7 +95,7 @@ const CalendarSettings = () => {
       }
     } catch (error) {
       console.error('Failed to initiate Google Calendar connection:', error);
-      alert('Failed to connect Google Calendar. Please try again.');
+      showError('Failed to connect Google Calendar. Please try again.');
     } finally {
       setIsConnecting(false);
     }
@@ -76,10 +109,10 @@ const CalendarSettings = () => {
     try {
       await api.delete('/me/calendar/google/disconnect');
       await fetchConnections();
-      alert('Google Calendar disconnected successfully.');
+      showSuccess('Google Calendar disconnected successfully.');
     } catch (error) {
       console.error('Failed to disconnect Google Calendar:', error);
-      alert('Failed to disconnect Google Calendar. Please try again.');
+      showError('Failed to disconnect Google Calendar. Please try again.');
     }
   };
 
@@ -107,7 +140,7 @@ const CalendarSettings = () => {
       }
     } catch (error) {
       console.error('Failed to initiate Microsoft Calendar connection:', error);
-      alert('Failed to connect Microsoft Calendar. Please try again.');
+      showError('Failed to connect Microsoft Calendar. Please try again.');
     } finally {
       setIsConnecting(false);
     }
@@ -121,10 +154,10 @@ const CalendarSettings = () => {
     try {
       await api.delete('/me/calendar/microsoft/disconnect');
       await fetchConnections();
-      alert('Microsoft Calendar disconnected successfully.');
+      showSuccess('Microsoft Calendar disconnected successfully.');
     } catch (error) {
       console.error('Failed to disconnect Microsoft Calendar:', error);
-      alert('Failed to disconnect Microsoft Calendar. Please try again.');
+      showError('Failed to disconnect Microsoft Calendar. Please try again.');
     }
   };
 
@@ -132,51 +165,115 @@ const CalendarSettings = () => {
   const handleShowAppleConnect = () => {
     setShowAppleConnectForm(true);
     setAppleCredentials({ apple_id: '', app_specific_password: '' });
+    setAppleError(null); // Clear any existing errors
   };
 
-  const handleTestAppleConnection = async () => {
-    if (!appleCredentials.apple_id || !appleCredentials.app_specific_password) {
-      alert('Please enter both Apple ID and app-specific password.');
-      return;
+  const showAppleError = (message) => {
+    // Clear existing timer if any
+    if (appleErrorTimer) {
+      clearTimeout(appleErrorTimer);
     }
-
-    try {
-      setIsTestingApple(true);
-      const response = await api.post('/me/calendar/apple/test', appleCredentials);
-      
-      if (response.success) {
-        alert('✅ Connection test successful! You can now connect your Apple Calendar.');
-      } else {
-        alert('❌ Connection test failed: ' + response.error);
-      }
-    } catch (error) {
-      console.error('Apple connection test failed:', error);
-      alert('❌ Connection test failed. Please check your credentials and try again.');
-    } finally {
-      setIsTestingApple(false);
-    }
+    
+    setAppleError(message);
+    
+    // Set new timer to hide error after 10 seconds
+    const timer = setTimeout(() => {
+      setAppleError(null);
+      setAppleErrorTimer(null);
+    }, 10000);
+    
+    setAppleErrorTimer(timer);
   };
+
+  const showAppleSuccess = (message) => {
+    // Clear existing timer if any
+    if (appleSuccessTimer) {
+      clearTimeout(appleSuccessTimer);
+    }
+    
+    setAppleSuccess(message);
+    
+    // Set new timer to hide success after 5 seconds
+    const timer = setTimeout(() => {
+      setAppleSuccess(null);
+      setAppleSuccessTimer(null);
+    }, 5000);
+    
+    setAppleSuccessTimer(timer);
+  };
+
+  const showGlobalSuccess = (message) => {
+    // Clear existing timer if any
+    if (globalSuccessTimer) {
+      clearTimeout(globalSuccessTimer);
+    }
+    
+    setGlobalSuccess(message);
+    
+    // Set new timer to hide success after 5 seconds
+    const timer = setTimeout(() => {
+      setGlobalSuccess(null);
+      setGlobalSuccessTimer(null);
+    }, 5000);
+    
+    setGlobalSuccessTimer(timer);
+  };
+
+  const showGlobalError = (message) => {
+    // Clear existing timer if any
+    if (globalErrorTimer) {
+      clearTimeout(globalErrorTimer);
+    }
+    
+    setGlobalError(message);
+    
+    // Set new timer to hide error after 10 seconds
+    const timer = setTimeout(() => {
+      setGlobalError(null);
+      setGlobalErrorTimer(null);
+    }, 10000);
+    
+    setGlobalErrorTimer(timer);
+  };
+
+
 
   const handleConnectApple = async () => {
     if (!appleCredentials.apple_id || !appleCredentials.app_specific_password) {
-      alert('Please enter both Apple ID and app-specific password.');
+      showAppleError('Please enter both Apple ID and app-specific password.');
       return;
     }
 
     try {
       setIsConnecting(true);
+      setAppleError(null); // Clear any existing errors
       const response = await api.post('/me/calendar/apple/connect', appleCredentials);
       
       if (response.connection) {
-        alert('✅ Apple Calendar connected successfully!');
+        showAppleSuccess('Apple Calendar connected successfully!');
         setShowAppleConnectForm(false);
         setAppleCredentials({ apple_id: '', app_specific_password: '' });
+        setAppleError(null); // Clear any existing errors
         await fetchConnections();
       }
     } catch (error) {
       console.error('Failed to connect Apple Calendar:', error);
-      const errorMessage = error.response?.data?.error || 'Failed to connect Apple Calendar. Please try again.';
-      alert('❌ ' + errorMessage);
+      
+      let errorMessage = 'Failed to connect Apple Calendar. Please try again.';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.errors) {
+        // Handle validation errors
+        const validationErrors = Object.values(error.response.data.errors).flat();
+        errorMessage = validationErrors.join(', ');
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Invalid credentials. Please check your Apple ID and app-specific password.';
+      } else if (error.response?.status === 422) {
+        errorMessage = 'Validation failed. Please check your input.';
+      }
+      
+      showAppleError(errorMessage);
     } finally {
       setIsConnecting(false);
     }
@@ -190,10 +287,10 @@ const CalendarSettings = () => {
     try {
       await api.delete('/me/calendar/apple/disconnect');
       await fetchConnections();
-      alert('Apple Calendar disconnected successfully.');
+      showSuccess('Apple Calendar disconnected successfully.');
     } catch (error) {
       console.error('Failed to disconnect Apple Calendar:', error);
-      alert('Failed to disconnect Apple Calendar. Please try again.');
+      showError('Failed to disconnect Apple Calendar. Please try again.');
     }
   };
 
@@ -213,7 +310,7 @@ const CalendarSettings = () => {
       
     } catch (error) {
       console.error('Failed to sync calendars:', error);
-      alert('Failed to sync calendars. Please try again.');
+      showError('Failed to sync calendars. Please try again.');
       setIsSyncing(false);
     }
   };
@@ -274,6 +371,17 @@ const CalendarSettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* CSS Animation for countdown */}
+      <style>{`
+        @keyframes countdown {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
+
+      {/* Alert Container */}
+      <AlertContainer alerts={alerts} onRemoveAlert={removeAlert} />
+      
       {/* Header */}
       <Card padding="lg">
         <div className="flex items-center justify-between">
@@ -338,7 +446,7 @@ const CalendarSettings = () => {
                   icon={ExternalLink}
                   onClick={() => {
                     // TODO: Open calendar selection modal
-                    alert('Calendar selection coming soon! All calendars are currently included by default.');
+                    showSuccess('Calendar selection coming soon! All calendars are currently included by default.');
                   }}
                 >
                   Manage Calendars
@@ -406,7 +514,7 @@ const CalendarSettings = () => {
                   icon={ExternalLink}
                   onClick={() => {
                     // TODO: Open calendar selection modal
-                    alert('Calendar selection coming soon! All calendars are currently included by default.');
+                    showSuccess('Calendar selection coming soon! All calendars are currently included by default.');
                   }}
                 >
                   Manage Calendars
@@ -475,7 +583,7 @@ const CalendarSettings = () => {
                   icon={ExternalLink}
                   onClick={() => {
                     // TODO: Open calendar selection modal
-                    alert('Calendar selection coming soon! All calendars are currently included by default.');
+                    showSuccess('Calendar selection coming soon! All calendars are currently included by default.');
                   }}
                 >
                   Manage Calendars
@@ -559,14 +667,6 @@ const CalendarSettings = () => {
               
               <div className="flex items-center space-x-3">
                 <Button
-                  onClick={handleTestAppleConnection}
-                  loading={isTestingApple}
-                  variant="secondary"
-                  size="sm"
-                >
-                  Test Connection
-                </Button>
-                <Button
                   onClick={handleConnectApple}
                   loading={isConnecting}
                   size="sm"
@@ -574,6 +674,76 @@ const CalendarSettings = () => {
                   Connect Calendar
                 </Button>
               </div>
+
+              {/* Error Alert */}
+              {appleError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-red-800">{appleError}</p>
+                      <button
+                        onClick={() => {
+                          setAppleError(null);
+                          if (appleErrorTimer) {
+                            clearTimeout(appleErrorTimer);
+                            setAppleErrorTimer(null);
+                          }
+                        }}
+                        className="text-red-400 hover:text-red-600 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="mt-2 bg-red-200 rounded-full h-1 overflow-hidden">
+                      <div 
+                        className="h-full bg-red-500 rounded-full"
+                        style={{
+                          width: '100%',
+                          animation: 'countdown 10s linear forwards'
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Success Alert */}
+              {appleSuccess && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-green-800">{appleSuccess}</p>
+                      <button
+                        onClick={() => {
+                          setAppleSuccess(null);
+                          if (appleSuccessTimer) {
+                            clearTimeout(appleSuccessTimer);
+                            setAppleSuccessTimer(null);
+                          }
+                        }}
+                        className="text-green-400 hover:text-green-600 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="mt-2 bg-green-200 rounded-full h-1 overflow-hidden">
+                      <div 
+                        className="h-full bg-green-500 rounded-full"
+                        style={{
+                          width: '100%',
+                          animation: 'countdown 5s linear forwards'
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

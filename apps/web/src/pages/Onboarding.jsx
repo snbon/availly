@@ -5,9 +5,13 @@ import StepIndicator from '../components/onboarding/StepIndicator';
 import WelcomeStep from '../components/onboarding/WelcomeStep';
 import ScheduleStep from '../components/onboarding/ScheduleStep';
 import CompletionStep from '../components/onboarding/CompletionStep';
+import { AlertContainer } from '../components/ui';
+import { useAlert } from '../hooks/useAlert';
 import { api } from '../services/api';
 
 const Onboarding = () => {
+  const { alerts, showError, removeAlert } = useAlert();
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [availabilityRules, setAvailabilityRules] = useState([
     {
@@ -105,7 +109,7 @@ const Onboarding = () => {
         errorMessage = error.data.message;
       }
       
-      alert(errorMessage);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -144,6 +148,7 @@ const Onboarding = () => {
       <OnboardingHeader />
       
       <div className="max-w-4xl mx-auto px-4 py-12">
+        <AlertContainer alerts={alerts} onRemoveAlert={removeAlert} />
         <StepIndicator steps={steps} currentStep={currentStep} />
         
         <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-12">

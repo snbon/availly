@@ -29,24 +29,8 @@ class AppleCalendarService
     public function connectUserCalendar(User $user, string $appleId, string $appSpecificPassword): CalendarConnection
     {
         // Test the connection first
-        $client = $this->createCalDAVClient($appleId, $appSpecificPassword);
-
-        // Verify connection by attempting to get principal
-        $principalUrl = $this->getPrincipalUrl($appleId);
-
-        try {
-            $response = $client->propfind($principalUrl, [
-                '{DAV:}displayname',
-                '{urn:ietf:params:xml:ns:caldav}calendar-home-set'
-            ]);
-
-            if (!$response) {
-                throw new Exception('Unable to connect to Apple Calendar. Please check your credentials.');
-            }
-
-        } catch (Exception $e) {
-            Log::error('Apple CalDAV connection failed: ' . $e->getMessage());
-            throw new Exception('Failed to connect to Apple Calendar: ' . $e->getMessage());
+        if (!$this->testConnection($appleId, $appSpecificPassword)) {
+            throw new Exception('Unable to connect to Apple Calendar. Please verify your Apple ID and app-specific password.');
         }
 
         // Remove any existing Apple connections for this user
@@ -54,12 +38,19 @@ class AppleCalendarService
             ->where('provider', 'apple')
             ->delete();
 
+        // Discover the actual calendar home URL
+        $calendarHomeUrl = $this->discoverCalendarHomeUrl($appleId, $appSpecificPassword);
+
+        if (!$calendarHomeUrl) {
+            throw new Exception('Unable to discover calendar home URL. Please verify your credentials.');
+        }
+
         // Store credentials securely
         $credentials = [
             'apple_id' => $appleId,
             'app_specific_password' => $appSpecificPassword,
-            'principal_url' => $principalUrl,
-            'calendar_home_url' => $this->getCalendarHomeUrl($appleId),
+            'principal_url' => $this->getPrincipalUrl($appleId),
+            'calendar_home_url' => $calendarHomeUrl,
         ];
 
         // Create new connection
@@ -117,7 +108,9 @@ class AppleCalendarService
      */
     private function getPrincipalUrl(string $appleId): string
     {
-        return str_replace('{apple_id}', $appleId, $this->config['principal_url_template']);
+        // Apple CalDAV uses a different URL structure
+        // We need to discover the principal URL through the root URL
+        return 'https://caldav.icloud.com/';
     }
 
     /**
@@ -126,6 +119,176 @@ class AppleCalendarService
     private function getCalendarHomeUrl(string $appleId): string
     {
         return str_replace('{apple_id}', $appleId, $this->config['calendar_home_url_template']);
+    }
+
+    /**
+     * Discover the actual calendar home URL via CalDAV discovery.
+     */
+    private function discoverCalendarHomeUrl(string $appleId, string $appSpecificPassword): ?string
+    {
+        try {
+            Log::info('Starting CalDAV calendar home discovery', [
+                'apple_id' => $appleId
+            ]);
+
+            $client = $this->createCalDAVClient($appleId, $appSpecificPassword);
+
+                        // Step 1: Find the current user principal
+            $wellKnownUrl = 'https://caldav.icloud.com/.well-known/caldav';
+
+            $response = $client->propfind($wellKnownUrl, [
+                '{DAV:}current-user-principal'
+            ]);
+
+                        Log::info('Principal discovery response', [
+                'response_count' => count($response),
+                'response_keys' => array_keys($response),
+                'full_response' => json_encode($response, JSON_PRETTY_PRINT)
+            ]);
+
+                        $principalUrl = null;
+            foreach ($response as $url => $properties) {
+                Log::info('Checking response item', [
+                    'url' => $url,
+                    'properties' => is_array($properties) ? array_keys($properties) : gettype($properties),
+                    'properties_content' => json_encode($properties, JSON_PRETTY_PRINT)
+                ]);
+
+                // The response structure might be different - properties might be the array directly
+                if ($url === '{DAV:}current-user-principal' && is_array($properties)) {
+                    $principal = $properties;
+
+                    Log::info('Principal data structure', [
+                        'principal_type' => gettype($principal),
+                        'principal_data' => json_encode($principal, JSON_PRETTY_PRINT)
+                    ]);
+
+                    // Handle different response types
+                    if (is_object($principal) && method_exists($principal, 'getHref')) {
+                        $principalUrl = $principal->getHref();
+                    } elseif (is_string($principal)) {
+                        $principalUrl = $principal;
+                    } elseif (is_array($principal)) {
+                        // Handle Apple's specific response format: array of objects with name/value
+                        if (isset($principal[0]) && is_array($principal[0])) {
+                            foreach ($principal as $item) {
+                                if (isset($item['name']) && $item['name'] === '{DAV:}href' && isset($item['value'])) {
+                                    $principalUrl = $item['value'];
+                                    break;
+                                }
+                            }
+                        } elseif (isset($principal['href'])) {
+                            $principalUrl = $principal['href'];
+                        }
+                    }
+
+                    Log::info('Found principal URL candidate', [
+                        'principal_type' => gettype($principal),
+                        'principal_url' => $principalUrl
+                    ]);
+
+                    if ($principalUrl) {
+                        break;
+                    }
+                }
+            }
+
+            if (!$principalUrl) {
+                Log::error('Could not find current user principal', [
+                    'response_structure' => json_encode($response, JSON_PRETTY_PRINT)
+                ]);
+                return null;
+            }
+
+            // Make sure the principal URL is absolute
+            if (strpos($principalUrl, 'http') !== 0) {
+                $principalUrl = 'https://caldav.icloud.com' . $principalUrl;
+            }
+
+            Log::info('Found principal URL', ['principal_url' => $principalUrl]);
+
+            // Step 2: Find the calendar home set from the principal
+            $response = $client->propfind($principalUrl, [
+                '{urn:ietf:params:xml:ns:caldav}calendar-home-set'
+            ]);
+
+            Log::info('Calendar home discovery response', [
+                'principal_url' => $principalUrl,
+                'response_count' => count($response),
+                'response_keys' => array_keys($response)
+            ]);
+
+                                    $calendarHomeUrl = null;
+            foreach ($response as $url => $properties) {
+                Log::info('Checking calendar home response item', [
+                    'url' => $url,
+                    'properties' => is_array($properties) ? array_keys($properties) : gettype($properties),
+                    'properties_content' => json_encode($properties, JSON_PRETTY_PRINT)
+                ]);
+
+                // The response structure might be different - properties might be the array directly
+                if ($url === '{urn:ietf:params:xml:ns:caldav}calendar-home-set' && is_array($properties)) {
+                    $calendarHome = $properties;
+
+                    Log::info('Calendar home data structure', [
+                        'calendar_home_type' => gettype($calendarHome),
+                        'calendar_home_data' => json_encode($calendarHome, JSON_PRETTY_PRINT)
+                    ]);
+
+                    // Handle different response types
+                    if (is_object($calendarHome) && method_exists($calendarHome, 'getHref')) {
+                        $calendarHomeUrl = $calendarHome->getHref();
+                    } elseif (is_string($calendarHome)) {
+                        $calendarHomeUrl = $calendarHome;
+                    } elseif (is_array($calendarHome)) {
+                        // Handle Apple's specific response format: array of objects with name/value
+                        if (isset($calendarHome[0]) && is_array($calendarHome[0])) {
+                            foreach ($calendarHome as $item) {
+                                if (isset($item['name']) && $item['name'] === '{DAV:}href' && isset($item['value'])) {
+                                    $calendarHomeUrl = $item['value'];
+                                    break;
+                                }
+                            }
+                        } elseif (isset($calendarHome['href'])) {
+                            $calendarHomeUrl = $calendarHome['href'];
+                        }
+                    }
+
+                    Log::info('Found calendar home URL candidate', [
+                        'calendar_home_type' => gettype($calendarHome),
+                        'calendar_home_url' => $calendarHomeUrl
+                    ]);
+
+                    if ($calendarHomeUrl) {
+                        break;
+                    }
+                }
+            }
+
+            if (!$calendarHomeUrl) {
+                Log::error('Could not find calendar home set', [
+                    'response_structure' => json_encode($response, JSON_PRETTY_PRINT)
+                ]);
+                return null;
+            }
+
+            // Make sure the calendar home URL is absolute
+            if (strpos($calendarHomeUrl, 'http') !== 0) {
+                $calendarHomeUrl = 'https://caldav.icloud.com' . $calendarHomeUrl;
+            }
+
+            Log::info('Discovered calendar home URL', ['calendar_home_url' => $calendarHomeUrl]);
+
+            return $calendarHomeUrl;
+
+        } catch (Exception $e) {
+            Log::error('Failed to discover calendar home URL', [
+                'error' => $e->getMessage(),
+                'apple_id' => $appleId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return null;
+        }
     }
 
     /**
@@ -200,7 +363,23 @@ class AppleCalendarService
             return false;
         }
 
-        return str_contains($resourceType, 'calendar');
+        // Handle Sabre DAV ResourceType object
+        if (is_object($resourceType)) {
+            // Check if it has the calendar resource type
+            $isCalendar = $resourceType->is('{urn:ietf:params:xml:ns:caldav}calendar');
+            Log::info('Checking resource type', [
+                'resource_type_class' => get_class($resourceType),
+                'is_calendar' => $isCalendar
+            ]);
+            return $isCalendar;
+        }
+
+        // Fallback for string comparison
+        if (is_string($resourceType)) {
+            return str_contains($resourceType, 'calendar');
+        }
+
+        return false;
     }
 
     /**
@@ -208,14 +387,27 @@ class AppleCalendarService
      */
     private function supportsEvents(array $properties): bool
     {
-        $supportedComponents = $properties['{urn:ietf:params:xml:ns:caldav}supported-calendar-component-set'] ?? '';
+        $supportedComponents = $properties['{urn:ietf:params:xml:ns:caldav}supported-calendar-component-set'] ?? null;
 
         // If no supported components specified, assume it supports events
-        if (empty($supportedComponents)) {
+        if (!$supportedComponents) {
             return true;
         }
 
-        return str_contains($supportedComponents, 'VEVENT');
+        // Handle Sabre DAV object
+        if (is_object($supportedComponents)) {
+            // Convert to string representation or check if it contains VEVENT
+            $componentsString = (string) $supportedComponents;
+            return str_contains($componentsString, 'VEVENT');
+        }
+
+        // Handle string
+        if (is_string($supportedComponents)) {
+            return str_contains($supportedComponents, 'VEVENT');
+        }
+
+        // Default to true if we can't determine
+        return true;
     }
 
     /**
@@ -439,18 +631,65 @@ class AppleCalendarService
     /**
      * Test CalDAV connection with provided credentials.
      */
-    public function testConnection(string $appleId, string $appSpecificPassword): bool
+            public function testConnection(string $appleId, string $appSpecificPassword): bool
     {
         try {
-            $client = $this->createCalDAVClient($appleId, $appSpecificPassword);
-            $principalUrl = $this->getPrincipalUrl($appleId);
+            Log::info('Testing Apple CalDAV connection', [
+                'apple_id' => $appleId,
+                'password_length' => strlen($appSpecificPassword),
+                'caldav_server' => $this->config['caldav_server']
+            ]);
 
-            $response = $client->propfind($principalUrl, ['{DAV:}displayname']);
+            $client = $this->createCalDAVClient($appleId, $appSpecificPassword);
+
+            // First, try to discover the principal URL using the well-known CalDAV endpoint
+            $wellKnownUrl = 'https://caldav.icloud.com/.well-known/caldav';
+
+            Log::info('Attempting CalDAV well-known discovery', [
+                'well_known_url' => $wellKnownUrl
+            ]);
+
+            try {
+                // Try the well-known endpoint first
+                $response = $client->propfind($wellKnownUrl, [
+                    '{DAV:}current-user-principal',
+                    '{DAV:}displayname'
+                ]);
+
+                if (!empty($response)) {
+                    Log::info('Well-known CalDAV discovery successful');
+                    return true;
+                }
+            } catch (Exception $e) {
+                Log::info('Well-known endpoint failed, trying root', ['error' => $e->getMessage()]);
+            }
+
+            // If well-known fails, try the root CalDAV URL
+            $rootUrl = 'https://caldav.icloud.com/';
+
+            Log::info('Attempting CalDAV root discovery', [
+                'root_url' => $rootUrl
+            ]);
+
+            $response = $client->propfind($rootUrl, [
+                '{DAV:}current-user-principal',
+                '{DAV:}displayname'
+            ]);
+
+            Log::info('CalDAV root response', [
+                'response_empty' => empty($response),
+                'response_type' => gettype($response)
+            ]);
 
             return !empty($response);
 
         } catch (Exception $e) {
-            Log::error('Apple CalDAV test connection failed: ' . $e->getMessage());
+            Log::error('Apple CalDAV test connection failed', [
+                'error' => $e->getMessage(),
+                'apple_id' => $appleId,
+                'error_code' => $e->getCode(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return false;
         }
     }

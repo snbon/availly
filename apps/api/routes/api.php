@@ -76,3 +76,5 @@ Route::middleware('auth:sanctum')->group(function () {
 // Webhooks
 Route::post('/webhooks/google', [\App\Http\Controllers\Webhooks\GoogleController::class, 'handle']);
 Route::post('/webhooks/microsoft', [\App\Http\Controllers\Webhooks\MicrosoftController::class, 'handle']);
+
+

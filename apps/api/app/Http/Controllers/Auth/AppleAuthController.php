@@ -27,7 +27,13 @@ class AppleAuthController extends Controller
         try {
             $request->validate([
                 'apple_id' => 'required|email',
-                'app_specific_password' => 'required|string|min:16',
+                'app_specific_password' => 'required|string|min:4',
+            ]);
+
+            Log::info('Apple Calendar connection attempt', [
+                'user_id' => Auth::id(),
+                'apple_id' => $request->input('apple_id'),
+                'password_length' => strlen($request->input('app_specific_password'))
             ]);
 
             $user = Auth::user();
@@ -40,7 +46,8 @@ class AppleAuthController extends Controller
             if (!$isValid) {
                 return response()->json([
                     'error' => 'Unable to connect to Apple Calendar. Please verify your Apple ID and app-specific password.',
-                    'help' => 'Make sure you have generated an app-specific password in your Apple ID settings.'
+                    'help' => 'Make sure you have generated an app-specific password in your Apple ID settings.',
+                    'details' => 'CalDAV authentication failed. Check that your app-specific password is correct and that two-factor authentication is enabled on your Apple ID.'
                 ], 400);
             }
 
@@ -60,6 +67,11 @@ class AppleAuthController extends Controller
             ]);
 
         } catch (ValidationException $e) {
+            Log::warning('Apple Calendar validation failed', [
+                'errors' => $e->errors(),
+                'user_id' => Auth::id()
+            ]);
+
             return response()->json([
                 'error' => 'Validation failed',
                 'errors' => $e->errors()
@@ -67,6 +79,8 @@ class AppleAuthController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Apple Calendar connection failed: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'apple_id' => $request->input('apple_id'),
                 'trace' => $e->getTraceAsString()
             ]);
 
@@ -101,7 +115,8 @@ class AppleAuthController extends Controller
                 return response()->json([
                     'success' => false,
                     'error' => 'Connection test failed. Please check your credentials.',
-                    'help' => 'Verify your Apple ID and ensure the app-specific password is correct.'
+                    'help' => 'Verify your Apple ID and ensure the app-specific password is correct.',
+                    'details' => 'CalDAV authentication failed. Make sure two-factor authentication is enabled on your Apple ID and you are using a valid app-specific password.'
                 ], 400);
             }
 

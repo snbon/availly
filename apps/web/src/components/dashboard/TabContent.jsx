@@ -3,6 +3,8 @@ import { Calendar, Link as LinkIcon, BarChart3, Filter, Copy, RefreshCw, Check, 
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import { AlertContainer } from '../ui';
+import { useAlert } from '../../hooks/useAlert';
 import EmptyState from './EmptyState';
 import { api } from '../../services/api';
 
@@ -23,6 +25,8 @@ const TabHeader = ({ title, description, buttonText, onButtonClick }) => {
 };
 
 const AvailabilityTab = () => {
+  const { alerts, showInfo, removeAlert } = useAlert();
+  
   const [availabilityRules, setAvailabilityRules] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -78,16 +82,18 @@ const AvailabilityTab = () => {
   const hasRules = availabilityRules.length > 0;
 
   return (
-    <Card padding="lg">
-      <TabHeader
-        title="Availability Settings"
-        description="Your weekly availability schedule"
-        buttonText="Edit Schedule"
-        onButtonClick={() => {
-          // TODO: Open availability editor modal
-          alert('Availability editor coming soon! For now, update your schedule during onboarding.');
-        }}
-      />
+    <div>
+      <AlertContainer alerts={alerts} onRemoveAlert={removeAlert} />
+      <Card padding="lg">
+        <TabHeader
+          title="Availability Settings"
+          description="Your weekly availability schedule"
+          buttonText="Edit Schedule"
+          onButtonClick={() => {
+            // TODO: Open availability editor modal
+            showInfo('Availability editor coming soon! For now, update your schedule during onboarding.');
+          }}
+        />
       
       {!hasRules ? (
         <EmptyState
@@ -148,11 +154,14 @@ const AvailabilityTab = () => {
           </div>
         </div>
       )}
-    </Card>
+      </Card>
+    </div>
   );
 };
 
 const LinksTab = () => {
+  const { alerts, showSuccess, showError, showInfo, removeAlert } = useAlert();
+  
   const [profile, setProfile] = useState(null);
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -246,14 +255,14 @@ const LinksTab = () => {
       // Update email text with new username
       setEmailText(`You can view my availability in the following link: https://myfreeslots.me/${username}`);
       
-      alert('Username updated successfully!');
+      showSuccess('Username updated successfully!');
     } catch (error) {
       if (error.data?.error) {
         setUsernameError(error.data.error);
       } else if (error.data?.message) {
         setUsernameError(error.data.message);
       } else {
-        alert('Failed to update username. Please try again.');
+        showError('Failed to update username. Please try again.');
       }
     } finally {
       setSaving(false);
@@ -262,7 +271,7 @@ const LinksTab = () => {
 
   const generateNewEmailText = async () => {
     if (!profile?.username) {
-      alert('Please set a username first');
+      showInfo('Please set a username first');
       return;
     }
 
@@ -277,14 +286,14 @@ const LinksTab = () => {
       } else {
         setEmailText(response.default);
         if (response.error) {
-          alert(`Using default text: ${response.error}`);
+          showInfo(`Using default text: ${response.error}`);
         }
       }
     } catch (error) {
       console.error('Failed to generate email text:', error);
       // Fallback to default
       setEmailText(`You can view my availability in the following link: https://myfreeslots.me/${profile.username}`);
-      alert('Failed to generate custom text, using default.');
+      showError('Failed to generate custom text, using default.');
     } finally {
       setIsGeneratingText(false);
     }
@@ -311,11 +320,13 @@ const LinksTab = () => {
   }
 
   return (
-    <Card padding="lg">
-      <TabHeader
-        title="Your Link"
-        description="Set your username and share your availability link"
-      />
+    <div>
+      <AlertContainer alerts={alerts} onRemoveAlert={removeAlert} />
+      <Card padding="lg">
+        <TabHeader
+          title="Your Link"
+          description="Set your username and share your availability link"
+        />
       
       <div className="space-y-8">
         {/* Username Setting Section */}
@@ -432,7 +443,8 @@ const LinksTab = () => {
           </div>
         )}
       </div>
-    </Card>
+      </Card>
+    </div>
   );
 };
 
