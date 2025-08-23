@@ -540,28 +540,128 @@ class AppleCalendarService
         try {
             // Parse XML response
             $xml = simplexml_load_string($responseBody);
+
+            if (!$xml) {
+                Log::error('Failed to parse XML response', ['response_body' => substr($responseBody, 0, 1000)]);
+                return [];
+            }
+
+                        // Get all namespaces from the XML
+            $namespaces = $xml->getNamespaces(true);
+
+            Log::info('Parsing Apple calendar response', [
+                'xml_namespaces' => $namespaces,
+                'response_length' => strlen($responseBody)
+            ]);
+
+            // Register all discovered namespaces
+            foreach ($namespaces as $prefix => $uri) {
+                if (!empty($prefix)) {
+                    $xml->registerXPathNamespace($prefix, $uri);
+                }
+            }
+
+            // Register standard namespaces with our preferred prefixes
             $xml->registerXPathNamespace('d', 'DAV:');
             $xml->registerXPathNamespace('c', 'urn:ietf:params:xml:ns:caldav');
+            $xml->registerXPathNamespace('cs', 'http://calendarserver.org/ns/');
 
+            // Try different XPath patterns to find responses
             $responses = $xml->xpath('//d:response');
 
-            foreach ($responses as $response) {
-                $calendarData = $response->xpath('.//c:calendar-data');
+            if (empty($responses)) {
+                // Try with different namespace prefix
+                $responses = $xml->xpath('//*[local-name()="response"]');
+                Log::info('Trying local-name approach for responses', ['found' => count($responses)]);
+            }
+
+            Log::info('Found responses in XML', ['response_count' => count($responses)]);
+
+                        foreach ($responses as $response) {
+                // Try multiple approaches to find calendar-data
+                $calendarData = [];
+
+                // First try with registered CalDAV namespace
+                try {
+                    $calendarData = $response->xpath('.//c:calendar-data');
+                } catch (Exception $e) {
+                    Log::info('CalDAV namespace approach failed', ['error' => $e->getMessage()]);
+                }
+
+                // Try with local-name approach (namespace agnostic)
+                if (empty($calendarData)) {
+                    try {
+                        $calendarData = $response->xpath('.//*[local-name()="calendar-data"]');
+                        Log::info('Using local-name approach for calendar-data', ['found' => count($calendarData)]);
+                    } catch (Exception $e) {
+                        Log::info('Local-name approach failed', ['error' => $e->getMessage()]);
+                    }
+                }
+
+                // Try with default namespace if CalDAV is in default namespace
+                if (empty($calendarData)) {
+                    try {
+                        $calendarData = $response->xpath('.//calendar-data');
+                        Log::info('Using default namespace for calendar-data', ['found' => count($calendarData)]);
+                    } catch (Exception $e) {
+                        Log::info('Default namespace approach failed', ['error' => $e->getMessage()]);
+                    }
+                }
 
                 if (!empty($calendarData)) {
                     $icalData = (string) $calendarData[0];
-                    $vCalendar = Reader::read($icalData);
 
-                    // Extract VEVENT components
-                    foreach ($vCalendar->VEVENT as $vevent) {
-                        $events[] = $vevent;
+                    Log::info('Processing calendar data', [
+                        'ical_length' => strlen($icalData),
+                        'ical_preview' => substr($icalData, 0, 200)
+                    ]);
+
+                    if (!empty($icalData)) {
+                        try {
+                            $vCalendar = Reader::read($icalData);
+
+                            // Extract VEVENT components
+                            if (isset($vCalendar->VEVENT)) {
+                                $eventCount = 0;
+                                foreach ($vCalendar->VEVENT as $vevent) {
+                                    $events[] = $vevent;
+                                    $eventCount++;
+                                    Log::info('Added VEVENT to events array', [
+                                        'event_number' => $eventCount,
+                                        'vevent_class' => get_class($vevent),
+                                        'total_events_so_far' => count($events)
+                                    ]);
+                                }
+
+                                Log::info('Found VEVENT components', [
+                                    'count' => count($vCalendar->VEVENT),
+                                    'total_events_in_array' => count($events)
+                                ]);
+                            } else {
+                                Log::info('No VEVENT components found in calendar data');
+                            }
+                        } catch (Exception $parseException) {
+                            Log::error('Failed to parse iCal data', [
+                                'error' => $parseException->getMessage(),
+                                'ical_data' => substr($icalData, 0, 500)
+                            ]);
+                        }
                     }
+                } else {
+                    Log::info('No calendar data found in response');
                 }
             }
 
         } catch (Exception $e) {
             Log::error('Failed to parse Apple calendar response: ' . $e->getMessage());
         }
+
+        Log::info('Returning events from parseCalendarResponse', [
+            'total_events' => count($events),
+            'events_preview' => array_slice(array_map(function($event) {
+                return get_class($event);
+            }, $events), 0, 3)
+        ]);
 
         return $events;
     }
@@ -572,10 +672,26 @@ class AppleCalendarService
     private function storeEvent(User $user, $vevent, string $calendarUrl): void
     {
         try {
+            Log::info('Attempting to store Apple event', [
+                'user_id' => $user->id,
+                'vevent_class' => get_class($vevent),
+                'has_uid' => isset($vevent->UID),
+                'has_summary' => isset($vevent->SUMMARY)
+            ]);
+
             $uid = (string) $vevent->UID;
             $summary = (string) ($vevent->SUMMARY ?? 'Untitled');
             $dtstart = $vevent->DTSTART;
             $dtend = $vevent->DTEND ?? null;
+
+            Log::info('Apple event details', [
+                'uid' => $uid,
+                'summary' => $summary,
+                'has_dtstart' => isset($dtstart),
+                'has_dtend' => isset($dtend),
+                'has_rrule' => isset($vevent->RRULE),
+                'rrule' => isset($vevent->RRULE) ? (string) $vevent->RRULE : null
+            ]);
 
             // Handle date/time parsing
             $startAt = Carbon::parse($dtstart->getDateTime())->utc();
@@ -596,17 +712,30 @@ class AppleCalendarService
                 $endAt = $endAt->subSecond();
             }
 
-            EventsCache::updateOrCreate([
-                'user_id' => $user->id,
-                'provider' => 'apple',
-                'ext_event_id' => $uid,
-            ], [
-                'title' => $summary,
-                'start_at_utc' => $startAt,
-                'end_at_utc' => $endAt,
-                'all_day' => $isAllDay,
-                'visibility' => $this->mapAppleVisibility($vevent),
-            ]);
+            // Handle recurring events
+            if (isset($vevent->RRULE)) {
+                $this->storeRecurringEvent($user, $vevent, $uid, $summary, $startAt, $endAt, $isAllDay);
+            } else {
+                // Store single event
+                $savedEvent = EventsCache::updateOrCreate([
+                    'user_id' => $user->id,
+                    'provider' => 'apple',
+                    'ext_event_id' => $uid,
+                ], [
+                    'title' => $summary,
+                    'start_at_utc' => $startAt,
+                    'end_at_utc' => $endAt,
+                    'all_day' => $isAllDay,
+                    'visibility' => $this->mapAppleVisibility($vevent),
+                ]);
+
+                Log::info('Apple event saved successfully', [
+                    'event_id' => $savedEvent->id,
+                    'title' => $summary,
+                    'start_at_utc' => $startAt->toISOString(),
+                    'end_at_utc' => $endAt->toISOString()
+                ]);
+            }
 
         } catch (Exception $e) {
             Log::error('Failed to store Apple event: ' . $e->getMessage());
@@ -692,5 +821,128 @@ class AppleCalendarService
             ]);
             return false;
         }
+    }
+
+    /**
+     * Store recurring event instances within the sync date range
+     */
+    private function storeRecurringEvent(User $user, $vevent, string $uid, string $summary, Carbon $startAt, Carbon $endAt, bool $isAllDay): void
+    {
+        try {
+            $rrule = (string) $vevent->RRULE;
+            Log::info('Processing recurring event', [
+                'uid' => $uid,
+                'summary' => $summary,
+                'rrule' => $rrule,
+                'original_start' => $startAt->toISOString()
+            ]);
+
+            // Parse RRULE to determine recurrence pattern
+            $rruleParts = [];
+            foreach (explode(';', $rrule) as $part) {
+                if (strpos($part, '=') !== false) {
+                    list($key, $value) = explode('=', $part, 2);
+                    $rruleParts[trim($key)] = trim($value);
+                }
+            }
+
+            // Get sync date range (current date to 1 year ahead)
+            $syncStart = Carbon::now()->startOfDay();
+            $syncEnd = Carbon::now()->addYear()->endOfDay();
+
+            // Handle YEARLY recurrence (like birthdays)
+            if (isset($rruleParts['FREQ']) && $rruleParts['FREQ'] === 'YEARLY') {
+                $this->expandYearlyRecurrence($user, $vevent, $uid, $summary, $startAt, $endAt, $isAllDay, $rruleParts, $syncStart, $syncEnd);
+            }
+            // Handle other frequencies (DAILY, WEEKLY, MONTHLY) - can be extended later
+            else {
+                Log::info('Unsupported recurrence frequency', ['freq' => $rruleParts['FREQ'] ?? 'unknown']);
+
+                // For now, store the original event as fallback
+                EventsCache::updateOrCreate([
+                    'user_id' => $user->id,
+                    'provider' => 'apple',
+                    'ext_event_id' => $uid,
+                ], [
+                    'title' => $summary,
+                    'start_at_utc' => $startAt,
+                    'end_at_utc' => $endAt,
+                    'all_day' => $isAllDay,
+                    'visibility' => $this->mapAppleVisibility($vevent),
+                ]);
+            }
+
+        } catch (Exception $e) {
+            Log::error('Failed to process recurring event', [
+                'uid' => $uid,
+                'error' => $e->getMessage()
+            ]);
+
+            // Fallback: store original event
+            EventsCache::updateOrCreate([
+                'user_id' => $user->id,
+                'provider' => 'apple',
+                'ext_event_id' => $uid,
+            ], [
+                'title' => $summary,
+                'start_at_utc' => $startAt,
+                'end_at_utc' => $endAt,
+                'all_day' => $isAllDay,
+                'visibility' => $this->mapAppleVisibility($vevent),
+            ]);
+        }
+    }
+
+    /**
+     * Expand yearly recurring events (like birthdays)
+     */
+    private function expandYearlyRecurrence(User $user, $vevent, string $uid, string $summary, Carbon $originalStart, Carbon $originalEnd, bool $isAllDay, array $rruleParts, Carbon $syncStart, Carbon $syncEnd): void
+    {
+        $eventDuration = $originalEnd->diffInSeconds($originalStart);
+        $occurrences = 0;
+
+        // Start from the current year or the original year, whichever is later
+        $currentYear = max($syncStart->year, $originalStart->year);
+        $endYear = $syncEnd->year;
+
+        for ($year = $currentYear; $year <= $endYear; $year++) {
+            // Create occurrence for this year
+            $occurrenceStart = $originalStart->copy()
+                ->year($year)
+                ->startOfDay()
+                ->addSeconds($originalStart->secondsSinceMidnight());
+
+            $occurrenceEnd = $occurrenceStart->copy()->addSeconds($eventDuration);
+
+            // Only include if within sync range
+            if ($occurrenceStart->between($syncStart, $syncEnd)) {
+                $occurrenceUid = $uid . '_' . $year;
+
+                EventsCache::updateOrCreate([
+                    'user_id' => $user->id,
+                    'provider' => 'apple',
+                    'ext_event_id' => $occurrenceUid,
+                ], [
+                    'title' => $summary,
+                    'start_at_utc' => $occurrenceStart,
+                    'end_at_utc' => $occurrenceEnd,
+                    'all_day' => $isAllDay,
+                    'visibility' => $this->mapAppleVisibility($vevent),
+                ]);
+
+                $occurrences++;
+
+                Log::info('Created yearly recurrence', [
+                    'uid' => $occurrenceUid,
+                    'year' => $year,
+                    'start' => $occurrenceStart->toISOString()
+                ]);
+            }
+        }
+
+        Log::info('Expanded yearly recurring event', [
+            'original_uid' => $uid,
+            'total_occurrences' => $occurrences
+        ]);
     }
 }
