@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Calendar\GoogleCalendarService;
+use App\Services\Calendar\MicrosoftCalendarService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -10,10 +11,14 @@ use Illuminate\Support\Facades\Auth;
 class CalendarConnectionsController extends Controller
 {
     private GoogleCalendarService $googleCalendarService;
+    private MicrosoftCalendarService $microsoftCalendarService;
 
-    public function __construct(GoogleCalendarService $googleCalendarService)
-    {
+    public function __construct(
+        GoogleCalendarService $googleCalendarService,
+        MicrosoftCalendarService $microsoftCalendarService
+    ) {
         $this->googleCalendarService = $googleCalendarService;
+        $this->microsoftCalendarService = $microsoftCalendarService;
     }
 
     /**
@@ -69,6 +74,8 @@ class CalendarConnectionsController extends Controller
         $calendars = [];
         if ($connection->provider === 'google') {
             $calendars = $this->googleCalendarService->getUserCalendars($connection);
+        } elseif ($connection->provider === 'microsoft') {
+            $calendars = $this->microsoftCalendarService->getUserCalendars($connection);
         }
 
         // Merge with stored inclusion preferences
@@ -135,14 +142,14 @@ class CalendarConnectionsController extends Controller
 
         // Re-sync events if calendar was enabled
         if ($request->included) {
-            $this->googleCalendarService->syncUserEvents($user);
+            $this->syncUserEvents($user, $connection->provider);
         } else {
             // Remove cached events for this calendar
             $user->eventsCache()
                 ->where('provider', $connection->provider)
                 ->delete(); // Note: We don't track calendar_id in events_cache, so we remove all and re-sync
 
-            $this->googleCalendarService->syncUserEvents($user);
+            $this->syncUserEvents($user, $connection->provider);
         }
 
         return response()->json([
@@ -161,14 +168,21 @@ class CalendarConnectionsController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->hasGoogleCalendarConnected()) {
+        $activeConnections = $user->calendarConnections()
+            ->where('status', 'active')
+            ->get();
+
+        if ($activeConnections->isEmpty()) {
             return response()->json([
                 'error' => 'No active calendar connections found'
             ], 400);
         }
 
         try {
-            $this->googleCalendarService->syncUserEvents($user);
+            // Sync all active providers
+            foreach ($activeConnections as $connection) {
+                $this->syncUserEvents($user, $connection->provider);
+            }
 
             return response()->json([
                 'message' => 'Calendar sync completed successfully'
@@ -214,5 +228,22 @@ class CalendarConnectionsController extends Controller
         return response()->json([
             'events' => $events
         ]);
+    }
+
+    /**
+     * Sync events for a specific provider.
+     */
+    private function syncUserEvents($user, string $provider): void
+    {
+        switch ($provider) {
+            case 'google':
+                $this->googleCalendarService->syncUserEvents($user);
+                break;
+            case 'microsoft':
+                $this->microsoftCalendarService->syncUserEvents($user);
+                break;
+            default:
+                throw new \InvalidArgumentException("Unsupported calendar provider: {$provider}");
+        }
     }
 }

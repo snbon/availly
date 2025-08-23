@@ -25,6 +25,7 @@ Route::prefix('public')->group(function () {
 
 // OAuth callbacks (no auth required)
 Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback']);
+Route::get('/auth/microsoft/callback', [\App\Http\Controllers\Auth\MicrosoftAuthController::class, 'callback']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [\App\Http\Controllers\Auth\AuthController::class, 'me']);
@@ -56,9 +57,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/sync', [\App\Http\Controllers\CalendarConnectionsController::class, 'sync']);
         Route::get('/events', [\App\Http\Controllers\CalendarConnectionsController::class, 'getEvents']);
 
-        // Google Calendar OAuth
-        Route::post('/google/connect', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect']);
-        Route::delete('/google/disconnect', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'disconnect']);
+                        // Google Calendar OAuth
+                Route::post('/google/connect', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect']);
+                Route::delete('/google/disconnect', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'disconnect']);
+
+                // Microsoft Calendar OAuth
+                Route::post('/microsoft/connect', [\App\Http\Controllers\Auth\MicrosoftAuthController::class, 'redirect']);
+                Route::delete('/microsoft/disconnect', [\App\Http\Controllers\Auth\MicrosoftAuthController::class, 'disconnect']);
     });
 });
 

@@ -46,4 +46,11 @@ return [
         'redirect_uri' => env('GOOGLE_REDIRECT_URI', 'http://localhost:8000/api/auth/google/callback'),
     ],
 
+    'microsoft' => [
+        'client_id' => env('MICROSOFT_CLIENT_ID'),
+        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
+        'redirect_uri' => env('MICROSOFT_REDIRECT_URI', 'http://localhost:8000/api/auth/microsoft/callback'),
+        'tenant' => env('MICROSOFT_TENANT_ID', 'common'), // 'common' for multi-tenant, or specific tenant ID
+    ],
+
 ];

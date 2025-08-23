@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Trash2, RefreshCw, ExternalLink, CheckCircle, XCircle, AlertCircle, Wifi, WifiOff, Check } from 'lucide-react';
+import { Calendar, Plus, Trash2, RefreshCw, ExternalLink, CheckCircle, XCircle, AlertCircle, Wifi, WifiOff, Check, Mail } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { api } from '../../services/api';
@@ -72,6 +72,51 @@ const CalendarSettings = () => {
     }
   };
 
+  const handleConnectMicrosoft = async () => {
+    try {
+      setIsConnecting(true);
+      const response = await api.post('/me/calendar/microsoft/connect');
+      
+      if (response.auth_url) {
+        // Open Microsoft OAuth in a new window
+        const authWindow = window.open(
+          response.auth_url,
+          'microsoft_auth',
+          'width=500,height=600,scrollbars=yes,resizable=yes'
+        );
+
+        // Poll for window closure (user completed auth)
+        const checkClosed = setInterval(() => {
+          if (authWindow.closed) {
+            clearInterval(checkClosed);
+            // Refresh connections after auth
+            setTimeout(fetchConnections, 1000);
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Failed to initiate Microsoft Calendar connection:', error);
+      alert('Failed to connect Microsoft Calendar. Please try again.');
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnectMicrosoft = async () => {
+    if (!confirm('Are you sure you want to disconnect your Microsoft Calendar? This will remove all cached events.')) {
+      return;
+    }
+
+    try {
+      await api.delete('/me/calendar/microsoft/disconnect');
+      await fetchConnections();
+      alert('Microsoft Calendar disconnected successfully.');
+    } catch (error) {
+      console.error('Failed to disconnect Microsoft Calendar:', error);
+      alert('Failed to disconnect Microsoft Calendar. Please try again.');
+    }
+  };
+
   const handleSyncCalendars = async () => {
     try {
       setIsSyncing(true);
@@ -133,7 +178,8 @@ const CalendarSettings = () => {
   };
 
   const googleConnection = connections.find(conn => conn.provider === 'google');
-  const hasActiveConnection = googleConnection?.status === 'active';
+  const microsoftConnection = connections.find(conn => conn.provider === 'microsoft');
+  const hasActiveConnection = googleConnection?.status === 'active' || microsoftConnection?.status === 'active';
 
   if (isLoading) {
     return (
@@ -238,6 +284,75 @@ const CalendarSettings = () => {
         </div>
       </Card>
 
+      {/* Microsoft Calendar Connection */}
+      <Card padding="lg">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Mail className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-1">Microsoft Outlook</h3>
+              <p className="text-slate-600 text-sm mb-3">
+                Sync your Microsoft Outlook calendar events to automatically block busy times.
+              </p>
+              
+              {microsoftConnection && (
+                <div className="flex items-center space-x-4">
+                  <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(microsoftConnection.status)}`}>
+                    {getStatusIcon(microsoftConnection.status)}
+                    <span className="ml-2">{getStatusText(microsoftConnection.status)}</span>
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    Connected {new Date(microsoftConnection.connected_at).toLocaleDateString()}
+                  </div>
+                  {microsoftConnection.calendars_count > 0 && (
+                    <div className="text-xs text-slate-500">
+                      {microsoftConnection.included_calendars_count} of {microsoftConnection.calendars_count} calendars included
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            {microsoftConnection?.status === 'active' ? (
+              <>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={ExternalLink}
+                  onClick={() => {
+                    // TODO: Open calendar selection modal
+                    alert('Calendar selection coming soon! All calendars are currently included by default.');
+                  }}
+                >
+                  Manage Calendars
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  icon={Trash2}
+                  onClick={handleDisconnectMicrosoft}
+                >
+                  Disconnect
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={handleConnectMicrosoft}
+                loading={isConnecting}
+                icon={Plus}
+                disabled={true}
+              >
+                Connect Microsoft Outlook (Coming Soon)
+              </Button>
+            )}
+          </div>
+        </div>
+      </Card>
+
       {/* Connection Status Info */}
       {hasActiveConnection && (
         <Card padding="lg">
@@ -245,7 +360,7 @@ const CalendarSettings = () => {
             <Wifi className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
             <div>
               <h4 className="text-sm font-semibold text-green-900 mb-1">
-                Google Calendar Connected
+                Calendar{hasActiveConnection && (googleConnection?.status === 'active' && microsoftConnection?.status === 'active') ? 's' : ''} Connected
               </h4>
               <p className="text-sm text-green-700 mb-3">
                 Your calendar events are being synced automatically. Events will appear as busy time blocks 
