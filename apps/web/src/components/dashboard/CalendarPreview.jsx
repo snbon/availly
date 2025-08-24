@@ -28,22 +28,21 @@ const CalendarPreview = () => {
 
   useEffect(() => {
     const initializeData = async () => {
-      // Reset loading states when currentDate changes (week navigation)
-      setAvailabilityRulesLoaded(false);
-      setCalendarEventsLoaded(false);
-      setLoading(true);
-      
       generateWeekDates();
       
-      if (user) {
-        console.log('Dashboard Calendar: Using user from AuthContext:', user);
-        setUserTimezone(user.timezone || 'Europe/Brussels');
-      } else {
-        fetchUserData();
+      // Set timezone immediately if available
+      if (user?.timezone) {
+        setUserTimezone(user.timezone);
       }
       
-      // Fetch availability rules immediately
-      await fetchAvailabilityRules();
+      // Don't block UI - fetch data in background
+      setLoading(false);
+      
+      // Fetch data asynchronously without blocking
+      fetchAvailabilityRules();
+      if (!user?.timezone) {
+        fetchUserData();
+      }
     };
     
     initializeData();

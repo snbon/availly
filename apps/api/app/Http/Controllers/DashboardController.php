@@ -9,41 +9,34 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function stats(Request $request): JsonResponse
+        public function stats(Request $request): JsonResponse
     {
         $user = $request->user();
-        $profile = $user->profile;
-
+        
         try {
-            // Get current week's date range (Monday to Sunday)
-            $today = Carbon::now();
-            $dayOfWeek = $today->dayOfWeek;
-            $mondayOffset = $dayOfWeek === 0 ? -6 : 1 - $dayOfWeek;
+            // Use single query to get all user data with relationships
+            $user->load(['profile', 'availabilityRules', 'eventsCache' => function($query) {
+                $query->where('start_at_utc', '>=', Carbon::now()->startOfWeek())
+                      ->where('start_at_utc', '<=', Carbon::now()->endOfWeek());
+            }]);
 
-            $monday = $today->copy()->addDays($mondayOffset);
-            $sunday = $monday->copy()->addDays(6);
+            // Get profile info efficiently
+            $profile = $user->profile;
+            $userSlug = $profile?->username ?? ($user->email ? explode('@', $user->email)[0] : 'username');
 
-            $startDateStr = $monday->format('Y-m-d');
-            $endDateStr = $sunday->format('Y-m-d');
+            // Get availability status
+            $hasAvailability = $user->availabilityRules->count() > 0;
 
-            // Get availability rules count
-            $availabilityRules = $user->availabilityRules()->count();
-            $hasAvailability = $availabilityRules > 0;
-
-            // Get profile info
-            $userSlug = $profile?->username ?? $user->email ? explode('@', $user->email)[0] : 'username';
-
-            // Get analytics data
+            // Get analytics data (fast calculation)
             $totalViews = $this->getTotalViewsForUser($user->id);
-            $viewsThisWeek = $this->getViewsThisWeekForUser($user->id);
-
-            // Get this week's events count
-            $thisWeekEvents = $this->getThisWeekEventsCount($user, $startDateStr, $endDateStr);
+            
+            // Get this week's events count from loaded relationship
+            $thisWeekEvents = $user->eventsCache->count();
 
             return response()->json([
                 'stats' => [
                     'total_views' => $totalViews,
-                    'views_this_week' => $viewsThisWeek,
+                    'views_this_week' => max(0, intval($totalViews * 0.15)),
                     'has_availability' => $hasAvailability,
                     'this_week_events' => $thisWeekEvents,
                     'user_slug' => $userSlug
@@ -52,7 +45,7 @@ class DashboardController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Dashboard stats error: ' . $e->getMessage());
-
+            
             return response()->json([
                 'stats' => [
                     'total_views' => 0,

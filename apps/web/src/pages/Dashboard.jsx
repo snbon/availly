@@ -45,18 +45,22 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     // Set initial user slug from context immediately for instant display
     const initialUserSlug = user?.email?.split('@')[0] || 'username';
+    
+    // Show data immediately - don't wait for API
     setDashboardData({
       totalViews: 0,
       hasAvailability: false,
       thisWeekEvents: 0,
       userSlug: initialUserSlug
     });
-
+    setIsLoading(false); // Stop loading immediately
+    
+    // Fetch data in background and update when ready
     try {
-      // Use single optimized backend endpoint
       const response = await api.get('/me/dashboard/stats');
       const stats = response.stats;
       
+      // Update with real data when available
       setDashboardData({
         totalViews: stats.total_views || 0,
         hasAvailability: stats.has_availability || false,
@@ -66,9 +70,7 @@ const Dashboard = () => {
       
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
-      // Keep initial data on error
-    } finally {
-      setIsLoading(false);
+      // Keep initial data on error - UI already shown
     }
   };
 
