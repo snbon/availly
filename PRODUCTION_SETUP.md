@@ -13,12 +13,12 @@ git checkout prod
 ## 🏗️ Architecture Overview
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  app.availly.me │    │   availly.me    │    │   availly.me    │
-│                 │    │                 │    │                 │
-│  React Frontend │───▶│  Laravel API    │───▶│  Public Links   │
-│                 │    │                 │    │  /u/{username}  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌─────────────────────────────────────┐
+│  app.availly.me │    │        Laravel API Service          │
+│                 │    │                                     │
+│  React Frontend │───▶│  api.availly.me  +  availly.me     │
+│                 │    │  (API endpoints)    (Public Links)  │
+└─────────────────┘    └─────────────────────────────────────┘
          │                       │                       │
          │                       ▼                       │
          │              ┌─────────────────┐               │
@@ -38,8 +38,9 @@ git checkout prod
 ### 1. Domain Setup
 - [ ] Purchase domain `availly.me`
 - [ ] Configure DNS:
-  - `availly.me` → CNAME to `availly-api.onrender.com`
+  - `api.availly.me` → CNAME to `availly-api.onrender.com`
   - `app.availly.me` → CNAME to `availly-frontend.onrender.com`
+  - `availly.me` → CNAME to `availly-api.onrender.com` (temporarily for public links)
 
 ### 2. Third-Party Services
 - [ ] **Resend Account** (Email delivery)
@@ -145,9 +146,10 @@ VITE_APP_URL=https://app.availly.me
 | Service | URL Pattern | Purpose |
 |---------|-------------|---------|
 | Frontend App | `https://app.availly.me/*` | Main application dashboard |
-| API Endpoints | `https://availly.me/api/*` | REST API for frontend |
+| API Endpoints | `https://api.availly.me/api/*` | REST API for frontend |
 | Public Calendar | `https://availly.me/u/{username}` | Public calendar links |
-| Landing Page | `https://availly.me` | Future landing page |
+| API Health | `https://api.availly.me/api/health` | API health check |
+| Landing Page | `https://availly.me` | Future landing page (when ready) |
 
 ## 🔒 Security Features
 

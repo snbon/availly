@@ -17,7 +17,7 @@ services:
       - key: APP_TIMEZONE
         value: UTC
       - key: APP_URL
-        value: https://availly.me
+        value: https://api.availly.me
       - key: FRONTEND_URL
         value: https://app.availly.me
       - key: LOG_CHANNEL
@@ -102,6 +102,7 @@ services:
       php artisan view:cache
     startCommand: /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
     domains:
+      - api.availly.me
       - availly.me
     healthCheckPath: /api/health
 
@@ -115,7 +116,7 @@ services:
     branch: prod
     envVars:
       - key: VITE_API_URL
-        value: https://availly.me/api
+        value: https://api.availly.me/api
       - key: VITE_APP_URL
         value: https://app.availly.me
     buildCommand: |

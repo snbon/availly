@@ -3,9 +3,10 @@
 ## Overview
 
 This guide covers deploying Availly to production on Render with the following architecture:
-- **Backend API**: `availly.me` (Laravel API + Public Calendar Links)
+- **Backend API**: `api.availly.me` (Laravel API)
 - **Frontend App**: `app.availly.me` (React SPA)
-- **Public Links**: `availly.me/u/{username}` (Public calendar access)
+- **Landing Page**: `availly.me` (Separate repository)
+- **Public Links**: `availly.me/u/{username}` (Handled by landing page)
 
 ## Prerequisites
 
@@ -28,7 +29,7 @@ APP_NAME=Availly
 APP_ENV=production
 APP_DEBUG=false
 APP_TIMEZONE=UTC
-APP_URL=https://availly.me
+APP_URL=https://api.availly.me
 FRONTEND_URL=https://app.availly.me
 
 # Generate a new key with: php artisan key:generate --show
@@ -63,12 +64,12 @@ RESEND_API_KEY=re_YOUR_RESEND_API_KEY
 # OAuth - Google Calendar
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_REDIRECT_URI=https://availly.me/api/auth/google/callback
+GOOGLE_REDIRECT_URI=https://api.availly.me/api/auth/google/callback
 
 # OAuth - Microsoft Calendar
 MICROSOFT_CLIENT_ID=your_microsoft_client_id
 MICROSOFT_CLIENT_SECRET=your_microsoft_client_secret
-MICROSOFT_REDIRECT_URI=https://availly.me/api/auth/microsoft/callback
+MICROSOFT_REDIRECT_URI=https://api.availly.me/api/auth/microsoft/callback
 
 # Apple CalDAV (Optional)
 APPLE_CLIENT_ID=your_apple_client_id
@@ -79,14 +80,14 @@ your_apple_private_key_content
 -----END PRIVATE KEY-----"
 
 # Security & CORS
-SANCTUM_STATEFUL_DOMAINS=app.availly.me,availly.me
-CORS_ALLOWED_ORIGINS=https://app.availly.me,https://availly.me
+SANCTUM_STATEFUL_DOMAINS=app.availly.me,api.availly.me
+CORS_ALLOWED_ORIGINS=https://app.availly.me,https://api.availly.me
 ```
 
 ### Required Environment Variables for Frontend Service
 
 ```bash
-VITE_API_URL=https://availly.me/api
+VITE_API_URL=https://api.availly.me/api
 VITE_APP_URL=https://app.availly.me
 ```
 
