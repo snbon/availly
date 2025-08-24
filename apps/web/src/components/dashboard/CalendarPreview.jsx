@@ -22,17 +22,7 @@ const CalendarPreview = () => {
   // Days starting with Monday
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  // Generate hours from 12 AM to 11 PM (24 hours)
-  const hours = Array.from({ length: 24 }, (_, i) => {
-    const hour24 = i;
-    const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
-    const ampm = hour24 >= 12 ? 'PM' : 'AM';
-    return {
-      hour24,
-      display: `${hour12}:00 ${ampm}`,
-      isBusinessHour: hour24 >= 7 && hour24 <= 21 // 7 AM to 9 PM
-    };
-  });
+  // Viewport and hours will be calculated after getCalendarEvents is defined
 
   useEffect(() => {
     generateWeekDates();
@@ -79,7 +69,8 @@ const CalendarPreview = () => {
         const targetPosition = getTimePosition(currentTime) - (containerHeight * 0.25);
         
         // Ensure we don't scroll beyond the bounds
-        const maxScroll = (24 * 60) - containerHeight; // 24 hours * 60px per hour
+        const totalCalendarHeight = hours.length * 60; // Dynamic hours * 60px per hour
+        const maxScroll = totalCalendarHeight - containerHeight;
         const scrollPosition = Math.max(0, Math.min(targetPosition, maxScroll));
         
         // Use smooth scrolling for better UX
@@ -234,6 +225,75 @@ const CalendarPreview = () => {
     });
   };
 
+  // Calculate dynamic viewport based on availability rules and calendar events
+  const calculateViewport = () => {
+    const defaultStart = 8;  // 08:00 in user's timezone
+    const defaultEnd = 20;   // 20:00 in user's timezone
+    
+    // Find earliest and latest times from both availability rules and calendar events
+    let earliestHour = 24;
+    let latestHour = 0;
+    let hasContent = false;
+    
+    // Check availability rules
+    if (availabilityRules && availabilityRules.length > 0) {
+      availabilityRules.forEach(rule => {
+        const [startHour] = rule.start_time_local.split(':').map(Number);
+        const [endHour] = rule.end_time_local.split(':').map(Number);
+        
+        earliestHour = Math.min(earliestHour, startHour);
+        latestHour = Math.max(latestHour, endHour);
+        hasContent = true;
+      });
+    }
+    
+    // Check calendar events from all days in the current week
+    if (weekDates && weekDates.length > 0) {
+      weekDates.forEach(date => {
+        const dayEvents = getCalendarEvents(date);
+        dayEvents.forEach(event => {
+          if (!event.allDay) {
+            earliestHour = Math.min(earliestHour, event.start);
+            latestHour = Math.max(latestHour, event.end);
+            hasContent = true;
+          }
+        });
+      });
+    }
+    
+    // If no content, use default range
+    if (!hasContent) {
+      return { start: defaultStart, end: defaultEnd };
+    }
+    
+    // Extend by ±2 hours from content window
+    const extendedStart = Math.max(0, Math.floor(earliestHour) - 2);
+    const extendedEnd = Math.min(24, Math.ceil(latestHour) + 2);
+    
+    // Ensure minimum viewport of default range
+    const finalStart = Math.min(extendedStart, defaultStart);
+    const finalEnd = Math.max(extendedEnd, defaultEnd);
+    
+    return { start: finalStart, end: finalEnd };
+  };
+
+  const viewport = calculateViewport();
+
+  // Generate hours based on dynamic viewport (include end hour)
+  const hours = Array.from(
+    { length: viewport.end - viewport.start + 1 }, 
+    (_, i) => {
+      const hour24 = viewport.start + i;
+      const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+      const ampm = hour24 >= 12 ? 'PM' : 'AM';
+      return {
+        hour24,
+        display: `${hour12}:00 ${ampm}`,
+        isBusinessHour: hour24 >= 7 && hour24 <= 21 // 7 AM to 9 PM
+      };
+    }
+  );
+
   // Get availability blocks for a specific date
   const getAvailabilityBlocks = (date) => {
     const jsWeekday = date.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
@@ -281,7 +341,8 @@ const CalendarPreview = () => {
 
   // Convert hour to pixel position (each hour is 60px)
   const getTimePosition = (hour) => {
-    return hour * 60;
+    // Since viewport starts at viewport.start, we need to adjust the position
+    return (hour - viewport.start) * 60;
   };
 
   const getBlockHeight = (startHour, endHour) => {
