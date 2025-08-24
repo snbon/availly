@@ -6,7 +6,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import EmailVerification from './pages/EmailVerification';
 import Onboarding from './pages/Onboarding';
-import Dashboard from './pages/Dashboard';
+import DashboardOverview from './pages/DashboardOverview';
+import AvailabilityPage from './pages/AvailabilityPage';
+import LinksPage from './pages/LinksPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import Settings from './pages/Settings';
 import PublicCalendar from './pages/PublicCalendar';
 
@@ -39,7 +42,7 @@ function App() {
               path="/dashboard" 
               element={
                 <ProtectedRoute requireAuth={true} requireVerification={true}>
-                  <Dashboard />
+                  <DashboardOverview />
                 </ProtectedRoute>
               } 
             />
@@ -47,7 +50,7 @@ function App() {
               path="/availability" 
               element={
                 <ProtectedRoute requireAuth={true} requireVerification={true}>
-                  <Dashboard />
+                  <AvailabilityPage />
                 </ProtectedRoute>
               } 
             />
@@ -55,7 +58,7 @@ function App() {
               path="/links" 
               element={
                 <ProtectedRoute requireAuth={true} requireVerification={true}>
-                  <Dashboard />
+                  <LinksPage />
                 </ProtectedRoute>
               } 
             />
@@ -63,7 +66,7 @@ function App() {
               path="/analytics" 
               element={
                 <ProtectedRoute requireAuth={true} requireVerification={true}>
-                  <Dashboard />
+                  <AnalyticsPage />
                 </ProtectedRoute>
               } 
             />

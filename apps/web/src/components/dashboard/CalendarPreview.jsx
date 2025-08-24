@@ -16,8 +16,6 @@ const CalendarPreview = () => {
 
   const [loading, setLoading] = useState(true);
   const [hasAvailability, setHasAvailability] = useState(false);
-  const [availabilityRulesLoaded, setAvailabilityRulesLoaded] = useState(false);
-  const [calendarEventsLoaded, setCalendarEventsLoaded] = useState(false);
   const scrollContainerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -28,34 +26,27 @@ const CalendarPreview = () => {
 
   useEffect(() => {
     const initializeData = async () => {
+      setLoading(true);
       generateWeekDates();
       
       // Set timezone immediately if available
       if (user?.timezone) {
         setUserTimezone(user.timezone);
+      } else {
+        await fetchUserData();
       }
       
-      // Don't block UI - fetch data in background
+      // Fetch both availability rules and calendar events together
+      await Promise.all([
+        fetchAvailabilityRules(),
+        fetchCalendarEventsForCurrentWeek()
+      ]);
+      
       setLoading(false);
-      
-      // Fetch data asynchronously without blocking
-      fetchAvailabilityRules();
-      if (!user?.timezone) {
-        fetchUserData();
-      }
     };
     
     initializeData();
   }, [currentDate, user]);
-
-  // Load calendar events when weekDates are available
-  useEffect(() => {
-    if (weekDates.length > 0 && availabilityRulesLoaded) {
-      // Only fetch calendar events after availability rules are loaded
-      // This ensures both data sources are ready around the same time
-      fetchCalendarEvents();
-    }
-  }, [weekDates, availabilityRulesLoaded]);
 
   // Add visibility change listener to refresh data when user returns to dashboard
   useEffect(() => {
@@ -69,13 +60,6 @@ const CalendarPreview = () => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
-
-  // Update loading state when both data sources are ready
-  useEffect(() => {
-    if (availabilityRulesLoaded && calendarEventsLoaded) {
-      setLoading(false);
-    }
-  }, [availabilityRulesLoaded, calendarEventsLoaded]);
 
   useEffect(() => {
     // Auto-scroll to current time (only if today is in the current week view)
@@ -125,23 +109,34 @@ const CalendarPreview = () => {
       const response = await api.getAvailabilityRules();
       setAvailabilityRules(response.rules || []);
       setHasAvailability((response.rules || []).length > 0);
-      setAvailabilityRulesLoaded(true);
     } catch (error) {
       console.error('Failed to fetch availability rules:', error);
       setAvailabilityRules([]);
       setHasAvailability(false);
-      setAvailabilityRulesLoaded(true); // Still mark as loaded even on error
     }
   };
 
-  const fetchCalendarEvents = async () => {
+  const fetchCalendarEventsForCurrentWeek = async () => {
     try {
-      // Get date range for the current week
-      const startDate = weekDates[0];
-      const endDate = weekDates[6];
+      // Generate week dates first to get the date range
+      const today = new Date(currentDate);
+      const dayOfWeek = today.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday as day 0
+      
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + mondayOffset);
+      
+      const dates = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        dates.push(date);
+      }
+      
+      const startDate = dates[0];
+      const endDate = dates[6];
       
       if (!startDate || !endDate) {
-        setCalendarEventsLoaded(true);
         return;
       }
 
@@ -151,11 +146,9 @@ const CalendarPreview = () => {
       const response = await api.get(`/me/calendar/events?start_date=${startDateStr}&end_date=${endDateStr}`);
       
       setCalendarEvents(response.events || []);
-      setCalendarEventsLoaded(true);
     } catch (error) {
       console.error('Failed to fetch calendar events:', error);
       setCalendarEvents([]);
-      setCalendarEventsLoaded(true); // Still mark as loaded even on error
     }
   };
 
@@ -255,8 +248,8 @@ const CalendarPreview = () => {
     const defaultStart = 8;  // 08:00 in user's timezone
     const defaultEnd = 20;   // 20:00 in user's timezone
     
-    // Only calculate viewport when both data sources are loaded
-    if (!availabilityRulesLoaded || !calendarEventsLoaded) {
+    // Only calculate viewport when not loading
+    if (loading) {
       return { start: defaultStart, end: defaultEnd };
     }
     

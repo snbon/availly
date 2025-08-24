@@ -1,28 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Link as LinkIcon, TrendingUp, CalendarDays, BarChart3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { brandGradients } from '../theme/brand';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import NavigationTabs from '../components/dashboard/NavigationTabs';
 import OverviewTab from '../components/dashboard/OverviewTab';
-import TabContent from '../components/dashboard/TabContent';
 
-const Dashboard = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  // Determine active tab based on current route
-  const getActiveTabFromRoute = () => {
-    const path = location.pathname;
-    if (path === '/availability') return 'availability';
-    if (path === '/links') return 'links';
-    if (path === '/analytics') return 'analytics';
-    return 'overview'; // default for /dashboard
-  };
-
-  const [activeTab, setActiveTab] = useState(getActiveTabFromRoute());
+const DashboardOverview = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [dashboardData, setDashboardData] = useState({
     totalViews: 0,
@@ -32,52 +18,43 @@ const Dashboard = () => {
   });
   
   const { user, logout } = useAuth();
-
-  // Update active tab when route changes
-  useEffect(() => {
-    setActiveTab(getActiveTabFromRoute());
-  }, [location.pathname]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
-    // Set initial user slug from context immediately for instant display
-    const initialUserSlug = user?.email?.split('@')[0] || 'username';
-    
-    // Show data immediately - don't wait for API
-    setDashboardData({
-      totalViews: 0,
-      hasAvailability: false,
-      thisWeekEvents: 0,
-      userSlug: initialUserSlug
-    });
-    setIsLoading(false); // Stop loading immediately
-    
-    // Fetch data in background and update when ready
     try {
+      setIsLoading(true);
       const response = await api.get('/me/dashboard/stats');
       const stats = response.stats;
       
-      // Update with real data when available
+      // Set data only when we have real data from API
       setDashboardData({
         totalViews: stats.total_views || 0,
         hasAvailability: stats.has_availability || false,
         thisWeekEvents: stats.this_week_events || 0,
-        userSlug: stats.user_slug || initialUserSlug
+        userSlug: stats.user_slug || (user?.email?.split('@')[0] || 'username')
       });
       
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
-      // Keep initial data on error - UI already shown
+      // Set fallback data on error
+      setDashboardData({
+        totalViews: 0,
+        hasAvailability: false,
+        thisWeekEvents: 0,
+        userSlug: user?.email?.split('@')[0] || 'username'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCopyLink = () => {
     const link = `https://availly.me/u/${dashboardData.userSlug}`;
     navigator.clipboard.writeText(link).then(() => {
-      // Could show a toast notification here
       console.log('Link copied to clipboard');
     });
   };
@@ -153,17 +130,22 @@ const Dashboard = () => {
       </div>
       
       <DashboardHeader user={user} onLogout={handleLogout} onSettingsClick={handleSettingsClick} />
-      <NavigationTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
+      <NavigationTabs tabs={tabs} activeTab="overview" onTabChange={handleTabChange} />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'overview' ? (
-          <OverviewTab user={user} stats={stats} />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+              <p className="text-slate-600">Loading dashboard...</p>
+            </div>
+          </div>
         ) : (
-          <TabContent activeTab={activeTab} />
+          <OverviewTab user={user} stats={stats} />
         )}
       </main>
     </div>
   );
 };
 
-export default Dashboard;
+export default DashboardOverview;
