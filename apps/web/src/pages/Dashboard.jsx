@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Link as LinkIcon, TrendingUp, CalendarDays, BarChart3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../services/api';
 import { brandGradients } from '../theme/brand';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
@@ -10,87 +10,63 @@ import OverviewTab from '../components/dashboard/OverviewTab';
 import TabContent from '../components/dashboard/TabContent';
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Determine active tab based on current route
+  const getActiveTabFromRoute = () => {
+    const path = location.pathname;
+    if (path === '/availability') return 'availability';
+    if (path === '/links') return 'links';
+    if (path === '/analytics') return 'analytics';
+    return 'overview'; // default for /dashboard
+  };
+
+  const [activeTab, setActiveTab] = useState(getActiveTabFromRoute());
   const [isLoading, setIsLoading] = useState(false);
   const [dashboardData, setDashboardData] = useState({
-    totalViews: 'Loading...',
+    totalViews: 0,
     hasAvailability: false,
-    thisWeekEvents: 'Loading...',
-    userSlug: 'Loading...'
+    thisWeekEvents: 0,
+    userSlug: 'username'
   });
   
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+
+  // Update active tab when route changes
+  useEffect(() => {
+    setActiveTab(getActiveTabFromRoute());
+  }, [location.pathname]);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Get current week's date range (Monday to Sunday)
-      const today = new Date();
-      const dayOfWeek = today.getDay();
-      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday as day 0
-      
-      const monday = new Date(today);
-      monday.setDate(today.getDate() + mondayOffset);
-      
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      
-      const startDateStr = monday.toISOString().split('T')[0];
-      const endDateStr = sunday.toISOString().split('T')[0];
+    // Set initial user slug from context immediately for instant display
+    const initialUserSlug = user?.email?.split('@')[0] || 'username';
+    setDashboardData({
+      totalViews: 0,
+      hasAvailability: false,
+      thisWeekEvents: 0,
+      userSlug: initialUserSlug
+    });
 
-      // Set initial user slug from context immediately
-      const initialUserSlug = user?.email?.split('@')[0] || 'username';
-      setDashboardData(prev => ({ ...prev, userSlug: initialUserSlug }));
-      
-      // Fetch all data in parallel for faster loading
-      const [availabilityResponse, analyticsResponse, eventsResponse, profileResponse] = await Promise.allSettled([
-        api.getAvailabilityRules(),
-        api.get('/me/analytics/links'),
-        api.get(`/me/calendar/events?start_date=${startDateStr}&end_date=${endDateStr}`),
-        api.get('/me/profile')
-      ]);
-      
-      // Process availability rules
-      const hasAvailability = availabilityResponse.status === 'fulfilled' 
-        ? (availabilityResponse.value.rules || []).length > 0 
-        : false;
-      
-      // Process analytics data
-      const totalViews = analyticsResponse.status === 'fulfilled' 
-        ? analyticsResponse.value.analytics?.total_views || 0 
-        : 0;
-      
-      // Process events data
-      const thisWeekEvents = eventsResponse.status === 'fulfilled' 
-        ? (eventsResponse.value.events || []).length 
-        : 0;
-      
-      // Process profile data
-      const userSlug = profileResponse.status === 'fulfilled' 
-        ? profileResponse.value.profile?.username || initialUserSlug
-        : initialUserSlug;
+    try {
+      // Use single optimized backend endpoint
+      const response = await api.get('/me/dashboard/stats');
+      const stats = response.stats;
       
       setDashboardData({
-        totalViews,
-        hasAvailability,
-        thisWeekEvents,
-        userSlug
+        totalViews: stats.total_views || 0,
+        hasAvailability: stats.has_availability || false,
+        thisWeekEvents: stats.this_week_events || 0,
+        userSlug: stats.user_slug || initialUserSlug
       });
+      
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
-      // Set fallback data
-      setDashboardData(prev => ({
-        totalViews: 0,
-        hasAvailability: false,
-        thisWeekEvents: 0,
-        userSlug: prev.userSlug
-      }));
+      // Keep initial data on error
     } finally {
       setIsLoading(false);
     }
@@ -139,13 +115,11 @@ const Dashboard = () => {
     }
   ];
 
-
-
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'availability', label: 'Availability', icon: Calendar },
-    { id: 'links', label: 'Links', icon: LinkIcon },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp }
+    { id: 'overview', label: 'Overview', icon: BarChart3, path: '/dashboard' },
+    { id: 'availability', label: 'Availability', icon: Calendar, path: '/availability' },
+    { id: 'links', label: 'Links', icon: LinkIcon, path: '/links' },
+    { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/analytics' }
   ];
 
   const handleSettingsClick = () => {
@@ -161,6 +135,13 @@ const Dashboard = () => {
     }
   };
 
+  const handleTabChange = (tabId) => {
+    const tab = tabs.find(t => t.id === tabId);
+    if (tab && tab.path) {
+      navigate(tab.path);
+    }
+  };
+
   return (
     <div className={`min-h-screen ${brandGradients.background} relative`}>
       {/* Background decorations */}
@@ -170,7 +151,7 @@ const Dashboard = () => {
       </div>
       
       <DashboardHeader user={user} onLogout={handleLogout} onSettingsClick={handleSettingsClick} />
-      <NavigationTabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+      <NavigationTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'overview' ? (

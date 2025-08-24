@@ -61,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/me/links', [\App\Http\Controllers\LinksController::class, 'store']);
 
     Route::get('/me/analytics/links', [\App\Http\Controllers\AnalyticsController::class, 'index']);
+    Route::get('/me/dashboard/stats', [\App\Http\Controllers\DashboardController::class, 'stats']);
 
     // Calendar connections
     Route::prefix('me/calendar')->group(function () {

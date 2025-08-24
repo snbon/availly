@@ -44,6 +44,30 @@ function App() {
               } 
             />
             <Route 
+              path="/availability" 
+              element={
+                <ProtectedRoute requireAuth={true} requireVerification={true}>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/links" 
+              element={
+                <ProtectedRoute requireAuth={true} requireVerification={true}>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/analytics" 
+              element={
+                <ProtectedRoute requireAuth={true} requireVerification={true}>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/settings" 
               element={
                 <ProtectedRoute requireAuth={true} requireVerification={true}>
