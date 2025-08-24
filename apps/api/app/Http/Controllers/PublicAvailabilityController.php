@@ -76,7 +76,11 @@ class PublicAvailabilityController extends Controller
         $endDateInUserTz = $endDate->copy()->setTimezone($userTimezone);
 
         while ($currentDate <= $endDateInUserTz) {
-            $weekday = $currentDate->dayOfWeek; // 0 = Sunday, 1 = Monday, etc.
+            $carbonWeekday = $currentDate->dayOfWeek; // 0 = Sunday, 1 = Monday, etc.
+
+            // Convert Carbon weekday (0=Sunday, 1=Monday, ..., 6=Saturday)
+            // to API weekday (0=Monday, 1=Tuesday, ..., 6=Sunday)
+            $weekday = $carbonWeekday === 0 ? 6 : $carbonWeekday - 1;
 
             // Find availability rules for this weekday
             $dayRules = $availabilityRules->where('weekday', $weekday);

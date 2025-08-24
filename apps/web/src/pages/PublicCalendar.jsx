@@ -37,6 +37,8 @@ const PublicCalendar = () => {
         startDate = new Date(monday);
         endDate = new Date(monday);
         endDate.setDate(monday.getDate() + 6);
+        
+
       } else {
         // Calculate the date range for the requested month
         const today = new Date();
