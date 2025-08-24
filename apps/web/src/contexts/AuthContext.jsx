@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { useAuthStore } from '../stores/authStore';
-import { useStoreInitializer } from '../stores/storeInitializer';
 
 const AuthContext = createContext();
 
@@ -24,26 +23,26 @@ export const AuthProvider = ({ children }) => {
     initialize: initializeAuth
   } = useAuthStore();
 
-  const { initializeAllStores } = useStoreInitializer();
-  const hasInitializedStores = useRef(false);
+  const hasInitializedAuth = useRef(false);
 
   useEffect(() => {
-    const initStores = async () => {
+    const initAuth = async () => {
+      if (hasInitializedAuth.current) {
+        console.log('Auth already initialized in context, skipping...');
+        return;
+      }
+      
       try {
+        hasInitializedAuth.current = true;
         await initializeAuth();
-        
-        // Only initialize other stores once when auth is ready
-        if (isAuthenticated && !hasInitializedStores.current) {
-          hasInitializedStores.current = true;
-          await initializeAllStores();
-        }
       } catch (error) {
         console.error('Failed to initialize auth:', error);
+        hasInitializedAuth.current = false; // Reset on error
       }
     };
     
-    initStores();
-  }, []); // Only run once on mount
+    initAuth();
+  }, []); // Remove initializeAuth dependency to prevent re-runs
 
   const login = async (credentials) => {
     try {
@@ -104,33 +103,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   const verifyEmail = async (verificationData) => {
-    try {
-      // This function is not directly available in the new store,
-      // so it will be removed or refactored if needed.
-      // For now, we'll return a placeholder or remove it if not used.
-      // Given the new_code, it seems the intent was to remove this function
-      // or refactor it to use the store's verifyEmail.
-      // For now, we'll return a placeholder.
-      console.warn("verifyEmail is not directly available in the new store. This function will be removed or refactored.");
-      return { success: false, message: "verifyEmail functionality not implemented in new store" };
-    } catch (error) {
-      return { success: false, message: error.message };
-    }
+    // This function is not directly available in the new store,
+    // so it will be removed or refactored if needed.
+    // For now, we'll return a placeholder or remove it if not used.
+    // Given the new_code, it seems the intent was to remove this function
+    // or refactor it to use the store's verifyEmail.
+    // For now, we'll return a placeholder.
+    console.warn("verifyEmail is not directly available in the new store. This function will be removed or refactored.");
+    return { success: false, message: "verifyEmail functionality not implemented in new store" };
   };
 
   const resendVerification = async (email) => {
-    try {
-      // This function is not directly available in the new store,
-      // so it will be removed or refactored if needed.
-      // For now, we'll return a placeholder or remove it if not used.
-      // Given the new_code, it seems the intent was to remove this function
-      // or refactor it to use the store's resendVerification.
-      // For now, we'll return a placeholder.
-      console.warn("resendVerification is not directly available in the new store. This function will be removed or refactored.");
-      return { success: false, message: "resendVerification functionality not implemented in new store" };
-    } catch (error) {
-      return { success: false, message: error.message };
-    }
+    // This function is not directly available in the new store,
+    // so it will be removed or refactored if needed.
+    // For now, we'll return a placeholder or remove it if not used.
+    // Given the new_code, it seems the intent was to remove this function
+    // or refactor it to use the store's resendVerification.
+    // For now, we'll return a placeholder.
+    console.warn("resendVerification is not directly available in the new store. This function will be removed or refactored.");
+    return { success: false, message: "resendVerification functionality not implemented in new store" };
   };
 
   const value = {
@@ -140,9 +131,9 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    verifyEmail,
-    resendVerification,
     refreshUser,
+    verifyEmail,
+    resendVerification
   };
 
   return (

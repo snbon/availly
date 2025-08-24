@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import StoreInitializer from './components/StoreInitializer';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -17,6 +18,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <StoreInitializer />
         <div className="App">
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />

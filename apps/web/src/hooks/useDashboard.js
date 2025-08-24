@@ -2,12 +2,14 @@ import { useDashboardStore } from '../stores/dashboardStore';
 import { useAvailabilityStore } from '../stores/availabilityStore';
 import { useLinksStore } from '../stores/linksStore';
 import { useAnalyticsStore } from '../stores/analyticsStore';
+import { useStoreInitializer } from '../stores/storeInitializer';
 
 export const useDashboard = () => {
   const dashboardStore = useDashboardStore();
   const availabilityStore = useAvailabilityStore();
   const linksStore = useLinksStore();
   const analyticsStore = useAnalyticsStore();
+  const { initializeDashboardStores } = useStoreInitializer();
 
   // Combined loading state
   const isLoading = 
@@ -31,6 +33,11 @@ export const useDashboard = () => {
       linksStore.initialize(),
       analyticsStore.initialize()
     ]);
+  };
+
+  // Initialize dashboard stores for seamless navigation
+  const initializeDashboard = async () => {
+    await initializeDashboardStores();
   };
 
   // Refresh all data
@@ -63,6 +70,7 @@ export const useDashboard = () => {
     
     // Actions
     initializeAll,
+    initializeDashboard,
     refreshAll,
     
     // Individual store actions

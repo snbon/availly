@@ -4,18 +4,25 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../ui/Card';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAvailabilityStore } from '../../stores/availabilityStore';
+import { useCalendarStore } from '../../stores/calendarStore';
 
 const CalendarPreview = () => {
   const { user } = useAuth();
+  const { availabilityRules, isInitialized: availabilityInitialized } = useAvailabilityStore();
+  const { 
+    events: calendarEvents, 
+    isLoading: calendarLoading, 
+    fetchEvents: fetchCalendarEvents,
+    initialize: initializeCalendar 
+  } = useCalendarStore();
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState([]);
-  const [availabilityRules, setAvailabilityRules] = useState([]);
-  const [calendarEvents, setCalendarEvents] = useState([]);
   const [userTimezone, setUserTimezone] = useState('Europe/Brussels');
   
-
-  const [loading, setLoading] = useState(true);
-  const [hasAvailability, setHasAvailability] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const hasAvailability = availabilityRules && availabilityRules.length > 0;
   const scrollContainerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -36,17 +43,22 @@ const CalendarPreview = () => {
         await fetchUserData();
       }
       
-      // Fetch both availability rules and calendar events together
-      await Promise.all([
-        fetchAvailabilityRules(),
-        fetchCalendarEventsForCurrentWeek()
-      ]);
+      // Initialize calendar with current week using store
+      const { startDate, endDate } = getCurrentWeekRange();
+      if (startDate && endDate) {
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const endDateStr = endDate.toISOString().split('T')[0];
+        await initializeCalendar(startDateStr, endDateStr);
+      }
       
       setLoading(false);
     };
     
-    initializeData();
-  }, [currentDate, user]);
+    // Initialize immediately when user is available
+    if (user) {
+      initializeData();
+    }
+  }, [currentDate, user, initializeCalendar]);
 
   // Add visibility change listener to refresh data when user returns to dashboard
   useEffect(() => {
@@ -104,52 +116,21 @@ const CalendarPreview = () => {
     }
   };
 
-  const fetchAvailabilityRules = async () => {
-    try {
-      const response = await api.getAvailabilityRules();
-      setAvailabilityRules(response.rules || []);
-      setHasAvailability((response.rules || []).length > 0);
-    } catch (error) {
-      console.error('Failed to fetch availability rules:', error);
-      setAvailabilityRules([]);
-      setHasAvailability(false);
-    }
-  };
 
-  const fetchCalendarEventsForCurrentWeek = async () => {
-    try {
-      // Generate week dates first to get the date range
-      const today = new Date(currentDate);
-      const dayOfWeek = today.getDay();
-      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday as day 0
-      
-      const monday = new Date(today);
-      monday.setDate(today.getDate() + mondayOffset);
-      
-      const dates = [];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + i);
-        dates.push(date);
-      }
-      
-      const startDate = dates[0];
-      const endDate = dates[6];
-      
-      if (!startDate || !endDate) {
-        return;
-      }
 
-      const startDateStr = startDate.toISOString().split('T')[0];
-      const endDateStr = endDate.toISOString().split('T')[0];
-      
-      const response = await api.get(`/me/calendar/events?start_date=${startDateStr}&end_date=${endDateStr}`);
-      
-      setCalendarEvents(response.events || []);
-    } catch (error) {
-      console.error('Failed to fetch calendar events:', error);
-      setCalendarEvents([]);
-    }
+  const getCurrentWeekRange = () => {
+    const today = new Date(currentDate);
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday as day 0
+    
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+    
+    const startDate = new Date(monday);
+    const endDate = new Date(monday);
+    endDate.setDate(monday.getDate() + 6);
+    
+    return { startDate, endDate };
   };
 
   const generateWeekDates = () => {
@@ -418,7 +399,7 @@ const CalendarPreview = () => {
     </div>
   );
 
-  if (loading) {
+  if (loading || calendarLoading) {
     return (
       <Card className="h-[600px] flex items-center justify-center">
         <div className="text-center">

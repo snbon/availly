@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Calendar, Link as LinkIcon, TrendingUp, BarChart3, Filter } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useAnalyticsStore } from '../stores/analyticsStore';
+import { useStoreInitializer } from '../stores/storeInitializer';
 import { brandGradients } from '../theme/brand';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import NavigationTabs from '../components/dashboard/NavigationTabs';
@@ -13,12 +15,25 @@ const AnalyticsPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  // Use Zustand store for analytics data
+  const { 
+    linkAnalytics, 
+    isLoading, 
+    isInitialized, 
+    initialize 
+  } = useAnalyticsStore();
+
+  const { areStoresReady } = useStoreInitializer();
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3, path: '/dashboard' },
     { id: 'availability', label: 'Availability', icon: Calendar, path: '/availability' },
     { id: 'links', label: 'Links', icon: LinkIcon, path: '/links' },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/analytics' }
   ];
+
+  // Show loading until we have actual analytics data
+  const isPageLoading = isLoading || !isInitialized;
 
   const handleSettingsClick = () => {
     navigate('/settings');
@@ -52,7 +67,15 @@ const AnalyticsPage = () => {
       <NavigationTabs tabs={tabs} activeTab="analytics" onTabChange={handleTabChange} />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card padding="lg">
+        {isPageLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+              <p className="text-slate-600">Loading analytics...</p>
+            </div>
+          </div>
+        ) : (
+          <Card padding="lg">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-2xl font-bold text-slate-900">Analytics</h3>
@@ -76,6 +99,7 @@ const AnalyticsPage = () => {
             description="Start sharing your calendar to see analytics and insights"
           />
         </Card>
+        )}
       </main>
     </div>
   );

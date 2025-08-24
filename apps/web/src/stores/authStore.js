@@ -1,11 +1,24 @@
 import { create } from 'zustand';
 import { api } from '../services/api';
+import { useDashboardStore } from './dashboardStore';
+import { useAvailabilityStore } from './availabilityStore';
+import { useLinksStore } from './linksStore';
+import { useAnalyticsStore } from './analyticsStore';
+import { useCalendarStore } from './calendarStore';
+
+// Import the clear function
+let clearAllStores = () => {};
+
+// Function to set the clear function (called from storeInitializer)
+export const setClearFunction = (fn) => {
+  clearAllStores = fn;
+};
 
 const useAuthStore = create((set, get) => ({
   // State
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true, // Start with loading true to prevent redirect during initialization
   isInitialized: false,
   
   // Actions
@@ -82,11 +95,16 @@ const useAuthStore = create((set, get) => ({
       const { clear: clearAvailability } = useAvailabilityStore.getState();
       const { clear: clearLinks } = useLinksStore.getState();
       const { clear: clearAnalytics } = useAnalyticsStore.getState();
+      const { clear: clearCalendar } = useCalendarStore.getState();
       
       clearDashboard();
       clearAvailability();
       clearLinks();
       clearAnalytics();
+      clearCalendar();
+      
+      // Reset initialization state using the store manager
+      clearAllStores();
     }
   },
   
@@ -95,7 +113,8 @@ const useAuthStore = create((set, get) => ({
     try {
       set({ isLoading: true });
       
-      const user = await api.getCurrentUser();
+      const response = await api.getCurrentUser();
+      const user = response.user;
       
       set({
         user,
@@ -120,13 +139,33 @@ const useAuthStore = create((set, get) => ({
     }
     
     console.log('Initializing auth store...');
+    
+    // Check if there's a token first
+    if (!api.token) {
+      console.log('No auth token found, user not authenticated');
+      set({ 
+        isInitialized: true,
+        isLoading: false,
+        isAuthenticated: false,
+        user: null
+      });
+      return;
+    }
+    
+    set({ isLoading: true });
+    
     try {
       await get().getCurrentUser();
     } catch (error) {
       // User not authenticated, clear token
       console.log('User not authenticated, clearing token...');
       api.clearToken();
-      set({ isInitialized: true });
+      set({ 
+        isInitialized: true,
+        isLoading: false,
+        isAuthenticated: false,
+        user: null
+      });
     }
   },
   

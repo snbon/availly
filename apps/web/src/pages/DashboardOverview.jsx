@@ -3,6 +3,7 @@ import { Calendar, Users, Link as LinkIcon, TrendingUp, CalendarDays, BarChart3 
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStore } from '../stores/dashboardStore';
+import { useStoreInitializer } from '../stores/storeInitializer';
 import { brandGradients } from '../theme/brand';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import NavigationTabs from '../components/dashboard/NavigationTabs';
@@ -21,12 +22,10 @@ const DashboardOverview = () => {
     initialize 
   } = useDashboardStore();
 
-  useEffect(() => {
-    // Initialize store if not already done
-    if (!isInitialized) {
-      initialize();
-    }
-  }, [isInitialized, initialize]);
+  const { areStoresReady } = useStoreInitializer();
+
+  // Show loading until we have actual data, not just initialized stores
+  const isPageLoading = isLoading || !dashboardData;
 
   const handleCopyLink = () => {
     const link = `https://availly.me/u/${dashboardData.userSlug}`;
@@ -109,7 +108,7 @@ const DashboardOverview = () => {
       <NavigationTabs tabs={tabs} activeTab="overview" onTabChange={handleTabChange} />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isLoading ? (
+        {isPageLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Link as LinkIcon, TrendingUp, BarChart3, Copy, RefreshCw, Check, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useStoreInitializer } from '../stores/storeInitializer';
+
+import { api } from '../services/api';
 import { brandGradients } from '../theme/brand';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import NavigationTabs from '../components/dashboard/NavigationTabs';
@@ -10,22 +13,26 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { AlertContainer } from '../components/ui';
 import { useAlert } from '../hooks/useAlert';
-import { api } from '../services/api';
 
 const LinksPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { alerts, showSuccess, showError, showInfo, removeAlert } = useAlert();
+  const { areStoresReady } = useStoreInitializer();
+  
+
   
   const [profile, setProfile] = useState(null);
   const [username, setUsername] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setSaving] = useState(false);
   const [isGeneratingText, setIsGeneratingText] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const [emailText, setEmailText] = useState('');
   const [copied, setCopied] = useState(false);
   const [emailCopied, setEmailCopied] = useState(false);
+  
+  // Show loading until we have actual user data with username
+  const isLoading = !user || !profile;
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3, path: '/dashboard' },
@@ -35,26 +42,28 @@ const LinksPage = () => {
   ];
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      setIsLoading(true);
-      const response = await api.get('/me/profile');
-      setProfile(response.profile);
-      setUsername(response.profile.username || '');
+    // Debug: Check what's in the user object
+    console.log('LinksPage - User object:', user);
+    console.log('LinksPage - Current profile:', profile);
+    console.log('LinksPage - Current username state:', username);
+    
+    // Get profile from user data (already available from auth)
+    if (user && !profile) {
+      setProfile({
+        username: user.username || '',
+        can_change_username: true,
+        days_until_change: 0
+      });
+      setUsername(user.username || '');
       
       // Set default email text if username exists
-      if (response.profile.username) {
-        setEmailText(`You can view my availability in the following link: https://availly.me/u/${response.profile.username}`);
+      if (user.username) {
+        setEmailText(`You can view my availability in the following link: https://availly.me/u/${user.username}`);
       }
-    } catch (error) {
-      console.error('Failed to fetch profile:', error);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [user, profile]);
+
+
 
   const validateUsername = (value) => {
     if (!value) {
@@ -119,24 +128,14 @@ const LinksPage = () => {
       
       showSuccess('Username updated successfully!');
     } catch (error) {
-      if (error.data?.error) {
-        setUsernameError(error.data.error);
-      } else if (error.data?.message) {
-        setUsernameError(error.data.message);
-      } else {
-        showError('Failed to update username. Please try again.');
-      }
+      console.error('Failed to save username:', error);
+      showError('Failed to save username. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
-  const generateNewEmailText = async () => {
-    if (!profile?.username) {
-      showInfo('Please set a username first');
-      return;
-    }
-
+  const handleGenerateEmailText = async () => {
     try {
       setIsGeneratingText(true);
       const response = await api.post('/me/profile/generate-email-text', {
@@ -153,9 +152,7 @@ const LinksPage = () => {
       }
     } catch (error) {
       console.error('Failed to generate email text:', error);
-      // Fallback to default
-      setEmailText(`You can view my availability in the following link: https://availly.me/u/${profile.username}`);
-      showError('Failed to generate custom text, using default.');
+      showError('Failed to generate email text. Using default.');
     } finally {
       setIsGeneratingText(false);
     }
@@ -209,7 +206,8 @@ const LinksPage = () => {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-              <p className="text-slate-600">Loading profile...</p>
+              <p className="text-slate-600 text-lg">Loading your link settings...</p>
+              <p className="text-slate-500 text-sm mt-2">This will only take a moment</p>
             </div>
           </div>
         ) : (
@@ -298,7 +296,7 @@ const LinksPage = () => {
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={generateNewEmailText}
+                      onClick={handleGenerateEmailText}
                       disabled={isGeneratingText}
                       icon={RefreshCw}
                       loading={isGeneratingText}

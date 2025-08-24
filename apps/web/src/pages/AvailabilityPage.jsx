@@ -3,6 +3,7 @@ import { Calendar, Link as LinkIcon, TrendingUp, BarChart3 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useAvailabilityStore } from '../stores/availabilityStore';
+import { useStoreInitializer } from '../stores/storeInitializer';
 import { brandGradients } from '../theme/brand';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import NavigationTabs from '../components/dashboard/NavigationTabs';
@@ -25,8 +26,13 @@ const AvailabilityPage = () => {
     isInitialized, 
     initialize 
   } = useAvailabilityStore();
+
+  const { areStoresReady } = useStoreInitializer();
   
   const [showModal, setShowModal] = useState(false);
+  
+  // Show loading until we have actual availability data
+  const isPageLoading = isLoading || !isInitialized;
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3, path: '/dashboard' },
@@ -35,12 +41,8 @@ const AvailabilityPage = () => {
     { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/analytics' }
   ];
 
-  useEffect(() => {
-    // Initialize store if not already done
-    if (!isInitialized) {
-      initialize();
-    }
-  }, [isInitialized, initialize]);
+  // No need for useEffect - stores are already initialized when user logged in
+  // Data should be available immediately from the store
 
   const formatTime = (timeString) => {
     if (!timeString) return '';
@@ -101,7 +103,7 @@ const AvailabilityPage = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <AlertContainer alerts={alerts} onRemoveAlert={removeAlert} />
         
-        {isLoading ? (
+        {isPageLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
