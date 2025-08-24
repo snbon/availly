@@ -43,15 +43,11 @@ class PublicAvailabilityController extends Controller
         // Calculate actual available time windows
         $availableWindows = $this->calculateAvailableWindows($user, $startDate, $endDate);
 
-        // Calculate dynamic viewport based on availability
-        $viewport = $this->calculateViewport($availableWindows, $user->timezone ?? 'Europe/Brussels');
-
         return response()->json([
             'slug' => $slug,
             'user_name' => $user->name,
             'user_timezone' => $user->timezone ?? 'Europe/Brussels',
             'range' => $startDate->format('Y-m-d') . '..' . $endDate->format('Y-m-d'),
-            'viewport' => $viewport,
             'availability' => [
                 'windows' => $availableWindows
             ]
@@ -166,50 +162,5 @@ class PublicAvailabilityController extends Controller
         return $freeWindows;
     }
 
-    /**
-     * Calculate dynamic viewport based on availability windows
-     */
-    private function calculateViewport(array $availableWindows, string $userTimezone = 'Europe/Brussels'): array
-    {
-        if (empty($availableWindows)) {
-            // Default viewport if no availability
-            return [
-                'start_hour' => 7,
-                'end_hour' => 20
-            ];
-        }
 
-        // Find earliest and latest times in user's timezone
-        $earliestHour = 24;
-        $latestHour = 0;
-
-        foreach ($availableWindows as $window) {
-            // Convert UTC times to user's timezone for viewport calculation
-            $startInUserTz = Carbon::parse($window['start'])->setTimezone($userTimezone);
-            $endInUserTz = Carbon::parse($window['end'])->setTimezone($userTimezone);
-
-            $startHour = $startInUserTz->hour;
-            $endHour = $endInUserTz->hour;
-
-            $earliestHour = min($earliestHour, $startHour);
-            $latestHour = max($latestHour, $endHour);
-        }
-
-        // Extend viewport by 2 hours on each side, but keep within reasonable bounds
-        $viewportStart = max(0, $earliestHour - 2);
-        $viewportEnd = min(24, $latestHour + 2);
-
-        // Ensure minimum viewport of 07:00-20:00
-        if ($viewportStart > 7) {
-            $viewportStart = 7;
-        }
-        if ($viewportEnd < 20) {
-            $viewportEnd = 20;
-        }
-
-        return [
-            'start_hour' => $viewportStart,
-            'end_hour' => $viewportEnd
-        ];
-    }
 }

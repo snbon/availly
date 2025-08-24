@@ -1,13 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Tooltip from './Tooltip';
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) => {
   
-  const viewport = availability?.viewport || { start_hour: 7, end_hour: 20 };
   const availableWindows = availability?.availability?.windows || [];
   const userTimezone = availability?.user_timezone || 'Europe/Brussels';
+  
+  // State to trigger re-render of time indicator every minute
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Update current time every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, []);
   
   // Helper function to get timezone display name
   const getTimezoneDisplay = (timezone) => {
@@ -32,22 +43,35 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
   
   // Calculate dynamic viewport based on availability and default range
   const calculateViewport = () => {
-    const defaultStart = 8;  // 08:00
-    const defaultEnd = 20;   // 20:00
+    const defaultStart = 8;  // 08:00 in user's timezone
+    const defaultEnd = 20;   // 20:00 in user's timezone
     
     if (!availableWindows || availableWindows.length === 0) {
       return { start: defaultStart, end: defaultEnd };
     }
     
-    // Find earliest and latest availability times
+    // Find earliest and latest availability times in user's timezone
     let earliestHour = 24;
     let latestHour = 0;
     
     availableWindows.forEach(window => {
+      // Convert UTC times to user's timezone using proper method
       const start = new Date(window.start);
       const end = new Date(window.end);
-      const startHour = start.getHours();
-      const endHour = end.getHours();
+      
+      // Get hours in user's timezone using toLocaleString with hour option
+      const startHour = parseInt(start.toLocaleString("en-US", { 
+        timeZone: userTimezone, 
+        hour12: false, 
+        hour: '2-digit' 
+      }));
+      const endHour = parseInt(end.toLocaleString("en-US", { 
+        timeZone: userTimezone, 
+        hour12: false, 
+        hour: '2-digit' 
+      }));
+      
+
       
       earliestHour = Math.min(earliestHour, startHour);
       latestHour = Math.max(latestHour, endHour);
@@ -61,14 +85,16 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
     const finalStart = Math.min(extendedStart, defaultStart);
     const finalEnd = Math.max(extendedEnd, defaultEnd);
     
+
+    
     return { start: finalStart, end: finalEnd };
   };
   
   const localViewport = calculateViewport();
   
-  // Generate hours based on dynamic viewport
+  // Generate hours based on dynamic viewport (include end hour)
   const hours = Array.from(
-    { length: localViewport.end - localViewport.start }, 
+    { length: localViewport.end - localViewport.start + 1 }, 
     (_, i) => {
       const hour24 = localViewport.start + i;
       const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
@@ -81,19 +107,54 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
     }
   );
 
+  // Get current time in user's timezone for time indicator
+  const getCurrentTimePosition = () => {
+    const now = currentTime;
+    
+    // Get current hour and minutes in user's timezone
+    const currentHour = parseInt(now.toLocaleString("en-US", { 
+      timeZone: userTimezone, 
+      hour12: false, 
+      hour: '2-digit' 
+    }));
+    const currentMinute = parseInt(now.toLocaleString("en-US", { 
+      timeZone: userTimezone, 
+      minute: '2-digit' 
+    }));
+    
+    // Check if current time is within viewport
+    if (currentHour < localViewport.start || currentHour >= localViewport.end) {
+      return null; // Don't show indicator if outside viewport
+    }
+    
+    // Calculate position (60px per hour + minutes offset)
+    const hourOffset = currentHour - localViewport.start;
+    const minuteOffset = (currentMinute / 60) * 60; // Convert minutes to pixels
+    const topPosition = hourOffset * 60 + minuteOffset;
+    
+    return {
+      show: true,
+      top: topPosition,
+      time: `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`
+    };
+  };
+  
+  const currentTimeIndicator = getCurrentTimePosition();
+
   // Get week dates based on current offset
   const getWeekDates = (weekOffset = 0) => {
     const now = new Date();
     const dayOfWeek = now.getDay();
-    const sundayOffset = dayOfWeek; // Days since Sunday
+    // Convert Sunday (0) to Monday-based week (Sunday becomes 6)
+    const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Days since Monday
     
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - sundayOffset + (weekOffset * 7));
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - mondayOffset + (weekOffset * 7));
     
     const dates = [];
     for (let i = 0; i < 7; i++) {
-      const date = new Date(sunday);
-      date.setDate(sunday.getDate() + i);
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
       dates.push(date);
     }
     return dates;
@@ -251,23 +312,28 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
       </div>
 
       {/* Calendar Header */}
-      <div className="grid grid-cols-8 border-b border-slate-200 mb-4">
-        <div className="p-3 text-sm font-medium text-slate-500">Time</div>
-        {DAYS.map((day, index) => {
-          const date = weekDates[index];
-          if (!date) return <div key={day}></div>;
-          
-          const today = isToday(date);
-          
-          return (
-            <div key={day} className={`p-3 text-center ${today ? 'bg-blue-50' : ''}`}>
-              <div className="text-sm font-medium text-slate-900">{day}</div>
-              <div className={`text-xs mt-1 ${today ? 'text-blue-700 font-semibold' : 'text-slate-500'}`}>
-                {date.getDate()}
+      <div className="flex border-b border-slate-200 mb-4">
+        {/* Time column header - matches body width */}
+        <div className="w-20 p-3 text-sm font-medium text-slate-500 text-center">Time</div>
+        
+        {/* Day columns header */}
+        <div className="flex-1 grid grid-cols-7">
+          {DAYS.map((day, index) => {
+            const date = weekDates[index];
+            if (!date) return <div key={day}></div>;
+            
+            const today = isToday(date);
+            
+            return (
+              <div key={day} className={`p-3 text-center ${today ? 'bg-blue-50' : ''}`}>
+                <div className="text-sm font-medium text-slate-900">{day}</div>
+                <div className={`text-xs mt-1 ${today ? 'text-blue-700 font-semibold' : 'text-slate-500'}`}>
+                  {date.getDate()}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Calendar Body */}
@@ -336,6 +402,23 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
                       </div>
                     </div>
                   ))}
+                  
+                  {/* Current time indicator - only show on today */}
+                  {today && currentTimeIndicator && (
+                    <div
+                      className="absolute left-0 right-0 z-30 pointer-events-none"
+                      style={{ top: `${currentTimeIndicator.top}px` }}
+                    >
+                      {/* Time indicator line */}
+                      <div className="h-0.5 bg-red-500 shadow-sm"></div>
+                      {/* Time label */}
+                      <div className="absolute -left-1 -top-2 bg-red-500 text-white text-xs px-1 rounded text-center min-w-[40px]">
+                        {currentTimeIndicator.time}
+                      </div>
+                      {/* Arrow pointing to the line */}
+                      <div className="absolute left-10 -top-1 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-red-500"></div>
+                    </div>
+                  )}
                 </div>
               );
             })}

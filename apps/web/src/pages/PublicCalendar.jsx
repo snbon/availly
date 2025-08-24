@@ -25,14 +25,18 @@ const PublicCalendar = () => {
       let startDate, endDate;
       
       if (view === 'week') {
-        // Calculate the date range for the requested week
+        // Calculate the date range for the requested week (Monday to Sunday)
         const today = new Date();
-        const sunday = new Date(today);
-        sunday.setDate(today.getDate() - today.getDay() + (weekOffset * 7));
+        const dayOfWeek = today.getDay();
+        // Convert Sunday (0) to Monday-based week (Sunday becomes 6)
+        const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
         
-        startDate = new Date(sunday);
-        endDate = new Date(sunday);
-        endDate.setDate(sunday.getDate() + 6);
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - mondayOffset + (weekOffset * 7));
+        
+        startDate = new Date(monday);
+        endDate = new Date(monday);
+        endDate.setDate(monday.getDate() + 6);
       } else {
         // Calculate the date range for the requested month
         const today = new Date();

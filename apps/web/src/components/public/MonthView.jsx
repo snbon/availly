@@ -1,7 +1,7 @@
 import React from 'react';
 import Tooltip from './Tooltip';
 
-const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
@@ -39,7 +39,8 @@ const MonthView = ({ availability, currentMonthOffset, onMonthChange, onRefresh 
   // Get first day of month and number of days
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
   const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-  const firstDayWeekday = firstDayOfMonth.getDay();
+  // Convert to Monday-based week (Monday = 0, Sunday = 6)
+  const firstDayWeekday = (firstDayOfMonth.getDay() + 6) % 7;
   const daysInMonth = lastDayOfMonth.getDate();
   
   // Helper function to check if a date has any availability

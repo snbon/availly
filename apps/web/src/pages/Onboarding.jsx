@@ -30,13 +30,13 @@ const Onboarding = () => {
   const navigate = useNavigate();
 
   const days = [
-    { value: 'monday', label: 'Monday', weekday: 1 },
-    { value: 'tuesday', label: 'Tuesday', weekday: 2 },
-    { value: 'wednesday', label: 'Wednesday', weekday: 3 },
-    { value: 'thursday', label: 'Thursday', weekday: 4 },
-    { value: 'friday', label: 'Friday', weekday: 5 },
-    { value: 'saturday', label: 'Saturday', weekday: 6 },
-    { value: 'sunday', label: 'Sunday', weekday: 0 }
+    { value: 'monday', label: 'Monday', weekday: 0 },
+    { value: 'tuesday', label: 'Tuesday', weekday: 1 },
+    { value: 'wednesday', label: 'Wednesday', weekday: 2 },
+    { value: 'thursday', label: 'Thursday', weekday: 3 },
+    { value: 'friday', label: 'Friday', weekday: 4 },
+    { value: 'saturday', label: 'Saturday', weekday: 5 },
+    { value: 'sunday', label: 'Sunday', weekday: 6 }
   ];
 
   const steps = [

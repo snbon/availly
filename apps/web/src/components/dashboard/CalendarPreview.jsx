@@ -236,14 +236,14 @@ const CalendarPreview = () => {
 
   // Get availability blocks for a specific date
   const getAvailabilityBlocks = (date) => {
-    const dayOfWeek = date.getDay();
+    const jsWeekday = date.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
     
     // Filter rules for this specific weekday
     const dayRules = availabilityRules.filter(rule => {
-      // Convert API weekday (0=Monday, 6=Sunday) to JS weekday (0=Sunday, 6=Saturday)
-      const apiWeekday = rule.weekday;
-      const jsWeekday = apiWeekday === 6 ? 0 : apiWeekday + 1;
-      return jsWeekday === dayOfWeek;
+      // API weekday: 0=Monday, 1=Tuesday, ..., 6=Sunday
+      // Convert JS weekday (0=Sunday, 1=Monday, ..., 6=Saturday) to API weekday (0=Monday, ..., 6=Sunday)
+      const apiWeekday = jsWeekday === 0 ? 6 : jsWeekday - 1;
+      return rule.weekday === apiWeekday;
     });
 
     // Convert time rules to availability blocks
@@ -391,23 +391,28 @@ const CalendarPreview = () => {
       </div>
 
       {/* Calendar Header */}
-      <div className="grid grid-cols-8 border-b border-slate-200 mb-4">
-        <div className="p-3 text-sm font-medium text-slate-500">Time</div>
-        {days.map((day, index) => {
-          const date = weekDates[index];
-          if (!date) return <div key={day}></div>;
-          
-          const today = isToday(date);
-          
-          return (
-            <div key={day} className={`p-3 text-center ${today ? 'bg-purple-50' : ''}`}>
-              <div className="text-sm font-medium text-slate-900">{day}</div>
-              <div className={`text-xs mt-1 ${today ? 'text-purple-700 font-semibold' : 'text-slate-500'}`}>
-                {date.getDate()}
+      <div className="flex border-b border-slate-200 mb-4">
+        {/* Time column header - matches body width */}
+        <div className="w-20 p-3 text-sm font-medium text-slate-500 text-center">Time</div>
+        
+        {/* Day columns header */}
+        <div className="flex-1 grid grid-cols-7">
+          {days.map((day, index) => {
+            const date = weekDates[index];
+            if (!date) return <div key={day}></div>;
+            
+            const today = isToday(date);
+            
+            return (
+              <div key={day} className={`p-3 text-center ${today ? 'bg-purple-50' : ''}`}>
+                <div className="text-sm font-medium text-slate-900">{day}</div>
+                <div className={`text-xs mt-1 ${today ? 'text-purple-700 font-semibold' : 'text-slate-500'}`}>
+                  {date.getDate()}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Scrollable Calendar Body */}
