@@ -6,6 +6,7 @@ import Input from '../ui/Input';
 import { AlertContainer } from '../ui';
 import { useAlert } from '../../hooks/useAlert';
 import EmptyState from './EmptyState';
+import AvailabilityModal from './AvailabilityModal';
 import { api } from '../../services/api';
 
 const TabHeader = ({ title, description, buttonText, onButtonClick }) => {
@@ -29,6 +30,7 @@ const AvailabilityTab = () => {
   
   const [availabilityRules, setAvailabilityRules] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     fetchAvailabilityRules();
@@ -58,10 +60,11 @@ const AvailabilityTab = () => {
   };
 
   const groupRulesByDay = (rules) => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     const grouped = {};
     
     days.forEach((day, index) => {
+      // API weekday: 0=Monday, 1=Tuesday, ..., 6=Sunday
       grouped[day] = rules.filter(rule => rule.weekday === index);
     });
     
@@ -89,10 +92,7 @@ const AvailabilityTab = () => {
           title="Availability Settings"
           description="Your weekly availability schedule"
           buttonText="Edit Schedule"
-          onButtonClick={() => {
-            // TODO: Open availability editor modal
-            showInfo('Availability editor coming soon! For now, update your schedule during onboarding.');
-          }}
+          onButtonClick={() => setShowModal(true)}
         />
       
       {!hasRules ? (
@@ -155,6 +155,13 @@ const AvailabilityTab = () => {
         </div>
       )}
       </Card>
+      
+      <AvailabilityModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={fetchAvailabilityRules}
+        initialRules={availabilityRules}
+      />
     </div>
   );
 };
@@ -185,7 +192,7 @@ const LinksTab = () => {
       
       // Set default email text if username exists
       if (response.profile.username) {
-        setEmailText(`You can view my availability in the following link: https://Availly.me/${response.profile.username}`);
+        setEmailText(`You can view my availability in the following link: https://availly.me/u/${response.profile.username}`);
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -253,7 +260,7 @@ const LinksTab = () => {
       setProfile(response.profile);
       
       // Update email text with new username
-      setEmailText(`You can view my availability in the following link: https://Availly.me/${username}`);
+      setEmailText(`You can view my availability in the following link: https://availly.me/u/${username}`);
       
       showSuccess('Username updated successfully!');
     } catch (error) {
@@ -292,7 +299,7 @@ const LinksTab = () => {
     } catch (error) {
       console.error('Failed to generate email text:', error);
       // Fallback to default
-      setEmailText(`You can view my availability in the following link: https://Availly.me/${profile.username}`);
+      setEmailText(`You can view my availability in the following link: https://availly.me/u/${profile.username}`);
       showError('Failed to generate custom text, using default.');
     } finally {
       setIsGeneratingText(false);
@@ -380,12 +387,12 @@ const LinksTab = () => {
               <div className="flex items-center space-x-3">
                 <div className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-lg">
                   <code className="text-sm text-slate-800">
-                    https://Availly.me/{profile.username}
+                    https://availly.me/u/{profile.username}
                   </code>
                 </div>
                 <Button
                   variant="secondary"
-                  onClick={() => copyToClipboard(`https://Availly.me/${profile.username}`, setCopied)}
+                  onClick={() => copyToClipboard(`https://availly.me/u/${profile.username}`, setCopied)}
                   icon={copied ? Check : Copy}
                 >
                   {copied ? 'Copied!' : 'Copy'}

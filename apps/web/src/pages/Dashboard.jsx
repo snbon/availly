@@ -13,10 +13,10 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isLoading, setIsLoading] = useState(false);
   const [dashboardData, setDashboardData] = useState({
-    totalViews: 0,
+    totalViews: 'Loading...',
     hasAvailability: false,
-    thisWeekBookings: 0,
-    userSlug: 'username'
+    thisWeekEvents: 'Loading...',
+    userSlug: 'Loading...'
   });
   
   const { user, logout } = useAuth();
@@ -30,27 +30,74 @@ const Dashboard = () => {
     try {
       setIsLoading(true);
       
-      // Fetch availability rules to check if user has set availability
-      const availabilityResponse = await api.getAvailabilityRules();
-      const hasAvailability = (availabilityResponse.rules || []).length > 0;
+      // Get current week's date range (Monday to Sunday)
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday as day 0
       
-      // For now, we'll use placeholder data for views and bookings
-      // These would come from analytics endpoints when implemented
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + mondayOffset);
+      
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      
+      const startDateStr = monday.toISOString().split('T')[0];
+      const endDateStr = sunday.toISOString().split('T')[0];
+
+      // Set initial user slug from context immediately
+      const initialUserSlug = user?.email?.split('@')[0] || 'username';
+      setDashboardData(prev => ({ ...prev, userSlug: initialUserSlug }));
+      
+      // Fetch all data in parallel for faster loading
+      const [availabilityResponse, analyticsResponse, eventsResponse, profileResponse] = await Promise.allSettled([
+        api.getAvailabilityRules(),
+        api.get('/me/analytics/links'),
+        api.get(`/me/calendar/events?start_date=${startDateStr}&end_date=${endDateStr}`),
+        api.get('/me/profile')
+      ]);
+      
+      // Process availability rules
+      const hasAvailability = availabilityResponse.status === 'fulfilled' 
+        ? (availabilityResponse.value.rules || []).length > 0 
+        : false;
+      
+      // Process analytics data
+      const totalViews = analyticsResponse.status === 'fulfilled' 
+        ? analyticsResponse.value.analytics?.total_views || 0 
+        : 0;
+      
+      // Process events data
+      const thisWeekEvents = eventsResponse.status === 'fulfilled' 
+        ? (eventsResponse.value.events || []).length 
+        : 0;
+      
+      // Process profile data
+      const userSlug = profileResponse.status === 'fulfilled' 
+        ? profileResponse.value.profile?.username || initialUserSlug
+        : initialUserSlug;
+      
       setDashboardData({
-        totalViews: 0, // TODO: Implement analytics API
+        totalViews,
         hasAvailability,
-        thisWeekBookings: 0, // TODO: Implement bookings API
-        userSlug: user?.email?.split('@')[0] || 'username' // Use email prefix as slug for now
+        thisWeekEvents,
+        userSlug
       });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
+      // Set fallback data
+      setDashboardData(prev => ({
+        totalViews: 0,
+        hasAvailability: false,
+        thisWeekEvents: 0,
+        userSlug: prev.userSlug
+      }));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleCopyLink = () => {
-    const link = `https://Availly.me/${dashboardData.userSlug}`;
+    const link = `https://availly.me/u/${dashboardData.userSlug}`;
     navigator.clipboard.writeText(link).then(() => {
       // Could show a toast notification here
       console.log('Link copied to clipboard');
@@ -70,7 +117,7 @@ const Dashboard = () => {
     },
     { 
       label: 'Copy Link', 
-      value: `Availly.me/${dashboardData.userSlug}`, 
+      value: `availly.me/u/${dashboardData.userSlug}`, 
       change: dashboardData.hasAvailability ? 'Ready to share' : 'Set availability first', 
       changeType: dashboardData.hasAvailability ? 'positive' : 'warning',
       icon: LinkIcon, 
@@ -82,9 +129,9 @@ const Dashboard = () => {
     },
     { 
       label: 'This Week', 
-      value: dashboardData.thisWeekBookings === 0 ? 'No bookings yet' : dashboardData.thisWeekBookings.toString(), 
-      change: dashboardData.thisWeekBookings === 0 ? 'Bookings will appear here' : '+8%', 
-      changeType: dashboardData.thisWeekBookings === 0 ? 'neutral' : 'positive',
+      value: dashboardData.thisWeekEvents === 0 ? '0 events' : `${dashboardData.thisWeekEvents} events this week`, 
+      change: dashboardData.thisWeekEvents === 0 ? 'No events this week' : `${dashboardData.thisWeekEvents} events`, 
+      changeType: dashboardData.thisWeekEvents === 0 ? 'neutral' : 'positive',
       icon: CalendarDays, 
       color: 'purple',
       bgColor: 'bg-purple-50',

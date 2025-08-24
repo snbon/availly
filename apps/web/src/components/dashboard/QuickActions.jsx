@@ -1,29 +1,34 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../ui/Card';
+import { brandAnimations } from '../../theme/brand';
 
 const QuickActions = () => {
-  const handleUpdateAvailability = () => {
-    // Navigate to availability tab or onboarding
-    window.location.href = '/onboarding';
+  const navigate = useNavigate();
+
+  const handleMyCalendars = () => {
+    navigate('/settings#calendars');
   };
 
   return (
-    <Card>
-      <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center">
-        <Calendar className="w-5 h-5 text-green-600 mr-2" />
-        Quick Actions
-      </h3>
-      <div className="space-y-3">
-        <button 
-          onClick={handleUpdateAvailability}
-          className="w-full flex items-center space-x-3 p-4 border border-slate-200 rounded-xl hover:border-green-300 hover:bg-green-50 transition-all duration-200 group"
-        >
-          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
-            <Calendar className="w-5 h-5 text-green-600" />
-          </div>
-          <span className="font-medium text-slate-900">Update My Availability</span>
-        </button>
+    <Card 
+      className={`${brandAnimations.scaleHover} cursor-pointer hover:shadow-lg transition-shadow`}
+      onClick={handleMyCalendars}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
+          <Settings className="w-6 h-6 text-indigo-600" />
+        </div>
+        <div className="text-sm font-medium px-2 py-1 rounded-full bg-indigo-100 text-indigo-700">
+          Manage
+        </div>
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-slate-900 mb-1">
+          My Calendars
+        </p>
+        <p className="text-slate-600 text-sm">Calendar Settings</p>
       </div>
     </Card>
   );

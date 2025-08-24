@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import Card from '../ui/Card';
+import QuickActions from './QuickActions';
 import { brandAnimations } from '../../theme/brand';
 
 const StatCard = ({ stat }) => {
@@ -63,12 +64,13 @@ const StatCard = ({ stat }) => {
   );
 };
 
-const StatsGrid = ({ stats }) => {
+const StatsGrid = ({ stats, showQuickActions = false }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat) => (
         <StatCard key={stat.label} stat={stat} />
       ))}
+      {showQuickActions && <QuickActions />}
     </div>
   );
 };
