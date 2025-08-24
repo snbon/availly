@@ -16,6 +16,8 @@ const CalendarPreview = () => {
 
   const [loading, setLoading] = useState(true);
   const [hasAvailability, setHasAvailability] = useState(false);
+  const [availabilityRulesLoaded, setAvailabilityRulesLoaded] = useState(false);
+  const [calendarEventsLoaded, setCalendarEventsLoaded] = useState(false);
   const scrollContainerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -25,15 +27,36 @@ const CalendarPreview = () => {
   // Viewport and hours will be calculated after getCalendarEvents is defined
 
   useEffect(() => {
-    generateWeekDates();
-    fetchAvailabilityRules();
-    if (user) {
-      console.log('Dashboard Calendar: Using user from AuthContext:', user);
-      setUserTimezone(user.timezone || 'Europe/Brussels');
-    } else {
-      fetchUserData();
-    }
+    const initializeData = async () => {
+      // Reset loading states when currentDate changes (week navigation)
+      setAvailabilityRulesLoaded(false);
+      setCalendarEventsLoaded(false);
+      setLoading(true);
+      
+      generateWeekDates();
+      
+      if (user) {
+        console.log('Dashboard Calendar: Using user from AuthContext:', user);
+        setUserTimezone(user.timezone || 'Europe/Brussels');
+      } else {
+        fetchUserData();
+      }
+      
+      // Fetch availability rules immediately
+      await fetchAvailabilityRules();
+    };
+    
+    initializeData();
   }, [currentDate, user]);
+
+  // Load calendar events when weekDates are available
+  useEffect(() => {
+    if (weekDates.length > 0 && availabilityRulesLoaded) {
+      // Only fetch calendar events after availability rules are loaded
+      // This ensures both data sources are ready around the same time
+      fetchCalendarEvents();
+    }
+  }, [weekDates, availabilityRulesLoaded]);
 
   // Add visibility change listener to refresh data when user returns to dashboard
   useEffect(() => {
@@ -48,11 +71,12 @@ const CalendarPreview = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
+  // Update loading state when both data sources are ready
   useEffect(() => {
-    if (weekDates.length > 0) {
-      fetchCalendarEvents();
+    if (availabilityRulesLoaded && calendarEventsLoaded) {
+      setLoading(false);
     }
-  }, [weekDates]);
+  }, [availabilityRulesLoaded, calendarEventsLoaded]);
 
   useEffect(() => {
     // Auto-scroll to current time (only if today is in the current week view)
@@ -99,16 +123,15 @@ const CalendarPreview = () => {
 
   const fetchAvailabilityRules = async () => {
     try {
-      setLoading(true);
       const response = await api.getAvailabilityRules();
       setAvailabilityRules(response.rules || []);
       setHasAvailability((response.rules || []).length > 0);
+      setAvailabilityRulesLoaded(true);
     } catch (error) {
       console.error('Failed to fetch availability rules:', error);
       setAvailabilityRules([]);
       setHasAvailability(false);
-    } finally {
-      setLoading(false);
+      setAvailabilityRulesLoaded(true); // Still mark as loaded even on error
     }
   };
 
@@ -119,6 +142,7 @@ const CalendarPreview = () => {
       const endDate = weekDates[6];
       
       if (!startDate || !endDate) {
+        setCalendarEventsLoaded(true);
         return;
       }
 
@@ -128,9 +152,11 @@ const CalendarPreview = () => {
       const response = await api.get(`/me/calendar/events?start_date=${startDateStr}&end_date=${endDateStr}`);
       
       setCalendarEvents(response.events || []);
+      setCalendarEventsLoaded(true);
     } catch (error) {
       console.error('Failed to fetch calendar events:', error);
       setCalendarEvents([]);
+      setCalendarEventsLoaded(true); // Still mark as loaded even on error
     }
   };
 
@@ -229,6 +255,11 @@ const CalendarPreview = () => {
   const calculateViewport = () => {
     const defaultStart = 8;  // 08:00 in user's timezone
     const defaultEnd = 20;   // 20:00 in user's timezone
+    
+    // Only calculate viewport when both data sources are loaded
+    if (!availabilityRulesLoaded || !calendarEventsLoaded) {
+      return { start: defaultStart, end: defaultEnd };
+    }
     
     // Find earliest and latest times from both availability rules and calendar events
     let earliestHour = 24;
