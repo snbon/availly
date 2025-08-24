@@ -1,56 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Calendar, Users, Link as LinkIcon, TrendingUp, CalendarDays, BarChart3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../services/api';
+import { useDashboardStore } from '../stores/dashboardStore';
 import { brandGradients } from '../theme/brand';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import NavigationTabs from '../components/dashboard/NavigationTabs';
 import OverviewTab from '../components/dashboard/OverviewTab';
 
 const DashboardOverview = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [dashboardData, setDashboardData] = useState({
-    totalViews: 0,
-    hasAvailability: false,
-    thisWeekEvents: 0,
-    userSlug: 'username'
-  });
-  
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  
+  // Use Zustand store instead of local state
+  const { 
+    dashboardData, 
+    isLoading, 
+    isInitialized, 
+    fetchDashboardData,
+    initialize 
+  } = useDashboardStore();
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setIsLoading(true);
-      const response = await api.get('/me/dashboard/stats');
-      const stats = response.stats;
-      
-      // Set data only when we have real data from API
-      setDashboardData({
-        totalViews: stats.total_views || 0,
-        hasAvailability: stats.has_availability || false,
-        thisWeekEvents: stats.this_week_events || 0,
-        userSlug: stats.user_slug || (user?.email?.split('@')[0] || 'username')
-      });
-      
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
-      // Set fallback data on error
-      setDashboardData({
-        totalViews: 0,
-        hasAvailability: false,
-        thisWeekEvents: 0,
-        userSlug: user?.email?.split('@')[0] || 'username'
-      });
-    } finally {
-      setIsLoading(false);
+    // Initialize store if not already done
+    if (!isInitialized) {
+      initialize();
     }
-  };
+  }, [isInitialized, initialize]);
 
   const handleCopyLink = () => {
     const link = `https://availly.me/u/${dashboardData.userSlug}`;

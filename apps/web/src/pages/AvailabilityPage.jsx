@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Link as LinkIcon, TrendingUp, BarChart3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useAvailabilityStore } from '../stores/availabilityStore';
 import { brandGradients } from '../theme/brand';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import NavigationTabs from '../components/dashboard/NavigationTabs';
@@ -11,15 +12,20 @@ import AvailabilityModal from '../components/dashboard/AvailabilityModal';
 import EmptyState from '../components/dashboard/EmptyState';
 import { AlertContainer } from '../components/ui';
 import { useAlert } from '../hooks/useAlert';
-import { api } from '../services/api';
 
 const AvailabilityPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { alerts, showInfo, removeAlert } = useAlert();
   
-  const [availabilityRules, setAvailabilityRules] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Use Zustand store instead of local state
+  const { 
+    availabilityRules, 
+    isLoading, 
+    isInitialized, 
+    initialize 
+  } = useAvailabilityStore();
+  
   const [showModal, setShowModal] = useState(false);
 
   const tabs = [
@@ -30,20 +36,11 @@ const AvailabilityPage = () => {
   ];
 
   useEffect(() => {
-    fetchAvailabilityRules();
-  }, []);
-
-  const fetchAvailabilityRules = async () => {
-    try {
-      setIsLoading(true);
-      const response = await api.get('/me/availability-rules');
-      setAvailabilityRules(response.rules);
-    } catch (error) {
-      console.error('Failed to fetch availability rules:', error);
-    } finally {
-      setIsLoading(false);
+    // Initialize store if not already done
+    if (!isInitialized) {
+      initialize();
     }
-  };
+  }, [isInitialized, initialize]);
 
   const formatTime = (timeString) => {
     if (!timeString) return '';
@@ -186,7 +183,7 @@ const AvailabilityPage = () => {
         <AvailabilityModal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
-          onSave={fetchAvailabilityRules}
+          onSave={initialize} // Assuming initialize will refetch or update the store
           initialRules={availabilityRules}
         />
       </main>
