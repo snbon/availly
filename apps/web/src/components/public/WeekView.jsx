@@ -4,21 +4,31 @@ import Tooltip from './Tooltip';
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) => {
-  console.log('=== WeekView Debug ===');
-  console.log('Full availability object:', availability);
-  console.log('Availability structure:', {
-    hasAvailability: !!availability,
-    hasAvailabilityProperty: !!(availability && availability.availability),
-    hasWindows: !!(availability && availability.availability && availability.availability.windows),
-    windowsLength: availability?.availability?.windows?.length || 0
-  });
   
   const viewport = availability?.viewport || { start_hour: 7, end_hour: 20 };
   const availableWindows = availability?.availability?.windows || [];
+  const userTimezone = availability?.user_timezone || 'Europe/Brussels';
   
-  // Debug logging
-  console.log('Available windows:', availableWindows);
-  console.log('Viewport:', viewport);
+  // Helper function to get timezone display name
+  const getTimezoneDisplay = (timezone) => {
+    try {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('en', {
+        timeZone: timezone,
+        timeZoneName: 'short'
+      });
+      const parts = formatter.formatToParts(now);
+      const timeZoneName = parts.find(part => part.type === 'timeZoneName')?.value || '';
+      
+      // Get city name from timezone
+      const cityName = timezone.split('/').pop()?.replace(/_/g, ' ') || '';
+      
+      return `${cityName} (${timeZoneName})`;
+    } catch (error) {
+      return timezone;
+    }
+  };
+
   
   // Calculate dynamic viewport based on availability and default range
   const calculateViewport = () => {
@@ -26,7 +36,6 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
     const defaultEnd = 20;   // 20:00
     
     if (!availableWindows || availableWindows.length === 0) {
-      console.log('No available windows, using default viewport:', { start: defaultStart, end: defaultEnd });
       return { start: defaultStart, end: defaultEnd };
     }
     
@@ -40,31 +49,22 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
       const startHour = start.getHours();
       const endHour = end.getHours();
       
-      console.log(`Window: ${start.toISOString()} to ${end.toISOString()}, hours: ${startHour} to ${endHour}`);
-      
       earliestHour = Math.min(earliestHour, startHour);
       latestHour = Math.max(latestHour, endHour);
     });
-    
-    console.log(`Raw earliest/latest hours: ${earliestHour} to ${latestHour}`);
     
     // Extend by ±2 hours from availability window
     const extendedStart = Math.max(0, earliestHour - 2);
     const extendedEnd = Math.min(24, latestHour + 2);
     
-    console.log(`Extended hours (±2): ${extendedStart} to ${extendedEnd}`);
-    
     // Ensure minimum viewport of default range
     const finalStart = Math.min(extendedStart, defaultStart);
     const finalEnd = Math.max(extendedEnd, defaultEnd);
-    
-    console.log(`Final viewport: ${finalStart} to ${finalEnd}`);
     
     return { start: finalStart, end: finalEnd };
   };
   
   const localViewport = calculateViewport();
-  console.log('Local viewport calculated:', localViewport);
   
   // Generate hours based on dynamic viewport
   const hours = Array.from(
@@ -80,8 +80,6 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
       };
     }
   );
-  
-  console.log('Generated hours:', hours);
 
   // Get week dates based on current offset
   const getWeekDates = (weekOffset = 0) => {
@@ -124,29 +122,19 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
 
   // Get availability blocks for a specific date
   const getAvailabilityBlocks = (date) => {
-    console.log(`getAvailabilityBlocks called for date: ${date.toDateString()}`);
-    console.log(`Available windows to filter:`, availableWindows);
-    
     // Convert date to start and end of day in UTC
     const startOfDay = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0));
     const endOfDay = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999));
-    
-    console.log(`Date range (UTC): ${startOfDay.toISOString()} to ${endOfDay.toISOString()}`);
     
     const filteredWindows = availableWindows.filter(window => {
       const windowStart = new Date(window.start);
       const windowEnd = new Date(window.end);
       
-      console.log(`Checking window: ${windowStart.toISOString()} to ${windowEnd.toISOString()}`);
-      
       // Check if window overlaps with this date
       const hasOverlap = windowStart < endOfDay && windowEnd > startOfDay;
-      console.log(`Overlap result: ${hasOverlap}`);
       
       return hasOverlap;
     });
-    
-    console.log(`Filtered windows for ${date.toDateString()}:`, filteredWindows);
     
     return filteredWindows.map(window => {
       const start = new Date(window.start);
@@ -171,7 +159,6 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
         })}`
       };
       
-      console.log(`Created block:`, block);
       return block;
     });
   };
@@ -182,7 +169,6 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
     // If viewport starts at 5:00 AM and hour is 7:00 AM, position should be (7-5)*60 = 120px
     const adjustedHour = hour - localViewport.start;
     const position = adjustedHour * 60;
-    console.log(`getTimePosition: hour=${hour}, viewport.start=${localViewport.start}, adjustedHour=${adjustedHour}, position=${position}px`);
     return position;
   };
 
@@ -223,9 +209,14 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
     <div className="max-w-6xl mx-auto">
       {/* Week Navigation Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-slate-900">
-          {isCurrentWeek() ? "This Week's Schedule" : "Week Schedule"}
-        </h3>
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">
+            {isCurrentWeek() ? "This Week's Schedule" : "Week Schedule"}
+          </h3>
+          <p className="text-xs text-slate-500 mt-1">
+            Times shown in {getTimezoneDisplay(userTimezone)}
+          </p>
+        </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => navigateWeek(-1)}
@@ -305,13 +296,7 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
               
               const today = isToday(date);
               const availabilityBlocks = getAvailabilityBlocks(date);
-              
-              // Debug logging for each day
-              if (dayIndex === 0) {
-                console.log('Week dates:', weekDates.map(d => d.toDateString()));
-                console.log('Checking availability for each day...');
-              }
-              console.log(`Day ${dayIndex} (${day}):`, date.toDateString(), 'Blocks:', availabilityBlocks.length);
+
               
               return (
                 <div key={day} className="relative border-r border-slate-200" style={{ minHeight: `${hours.length * 60}px` }}>

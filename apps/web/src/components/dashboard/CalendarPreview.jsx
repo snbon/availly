@@ -3,12 +3,15 @@ import { Calendar, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../ui/Card';
 import { api } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CalendarPreview = () => {
+  const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState([]);
   const [availabilityRules, setAvailabilityRules] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
+  const [userTimezone, setUserTimezone] = useState('Europe/Brussels');
   
 
   const [loading, setLoading] = useState(true);
@@ -34,7 +37,26 @@ const CalendarPreview = () => {
   useEffect(() => {
     generateWeekDates();
     fetchAvailabilityRules();
-  }, [currentDate]);
+    if (user) {
+      console.log('Dashboard Calendar: Using user from AuthContext:', user);
+      setUserTimezone(user.timezone || 'Europe/Brussels');
+    } else {
+      fetchUserData();
+    }
+  }, [currentDate, user]);
+
+  // Add visibility change listener to refresh data when user returns to dashboard
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Dashboard Calendar: Page became visible, refreshing user data...');
+        fetchUserData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     if (weekDates.length > 0) {
@@ -70,6 +92,19 @@ const CalendarPreview = () => {
       }
     }
   }, [weekDates]);
+
+  const fetchUserData = async () => {
+    try {
+      console.log('Dashboard Calendar: Fetching user timezone...');
+      const response = await api.get(`/me?t=${Date.now()}`); // Add cache-busting
+      console.log('Dashboard Calendar: User data response:', response.data);
+      const newTimezone = response.data.user.timezone || 'Europe/Brussels';
+      console.log('Dashboard Calendar: Setting timezone to:', newTimezone);
+      setUserTimezone(newTimezone);
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
+  };
 
   const fetchAvailabilityRules = async () => {
     try {
@@ -257,6 +292,26 @@ const CalendarPreview = () => {
     navigate('/onboarding');
   };
 
+  // Helper function to get timezone display name
+  const getTimezoneDisplay = (timezone) => {
+    try {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('en', {
+        timeZone: timezone,
+        timeZoneName: 'short'
+      });
+      const parts = formatter.formatToParts(now);
+      const timeZoneName = parts.find(part => part.type === 'timeZoneName')?.value || '';
+      
+      // Get city name from timezone
+      const cityName = timezone.split('/').pop()?.replace(/_/g, ' ') || '';
+      
+      return `${cityName} (${timeZoneName})`;
+    } catch (error) {
+      return timezone;
+    }
+  };
+
   // Empty state component
   const EmptyState = () => (
     <div className="flex-1 flex items-center justify-center p-8">
@@ -307,10 +362,15 @@ const CalendarPreview = () => {
   return (
     <Card className="h-[600px] flex flex-col">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-slate-900 flex items-center">
-          <Calendar className="w-5 h-5 text-purple-600 mr-2" />
-          {isCurrentWeek() ? "This Week's Schedule" : "Week Schedule"}
-        </h3>
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900 flex items-center">
+            <Calendar className="w-5 h-5 text-purple-600 mr-2" />
+            {isCurrentWeek() ? "This Week's Schedule" : "Week Schedule"}
+          </h3>
+                      <p className="text-xs text-slate-500">
+              Times shown in {getTimezoneDisplay(userTimezone)}
+            </p>
+        </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => navigateWeek(-1)}

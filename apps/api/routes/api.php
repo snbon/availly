@@ -1,6 +1,8 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 
 Route::get('/health', fn() => response()->json(['status' => 'ok']));
 
@@ -33,9 +35,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Profile routes
     Route::get('/me/profile', [\App\Http\Controllers\ProfileController::class, 'show']);
+    Route::put('/me/profile', [\App\Http\Controllers\ProfileController::class, 'update']);
     Route::put('/me/profile/username', [\App\Http\Controllers\ProfileController::class, 'updateUsername']);
     Route::post('/me/profile/check-username', [\App\Http\Controllers\ProfileController::class, 'checkUsername']);
     Route::post('/me/profile/generate-email-text', [\App\Http\Controllers\ProfileController::class, 'generateEmailText']);
+
+    // Test route to check current user timezone
+    Route::get('/me/test-timezone', function(Request $request) {
+        $user = $request->user();
+        return response()->json([
+            'user_id' => $user->id,
+            'current_timezone' => $user->timezone,
+            'database_value' => \DB::table('users')->where('id', $user->id)->value('timezone')
+        ]);
+    });
 
     Route::get('/me/availability-rules', [\App\Http\Controllers\AvailabilityRulesController::class, 'index']);
     Route::post('/me/availability-rules', [\App\Http\Controllers\AvailabilityRulesController::class, 'store']);

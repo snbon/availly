@@ -9,6 +9,27 @@ const MONTHS = [
 
 const MonthView = ({ availability, currentMonthOffset, onMonthChange, onRefresh }) => {
   const availableWindows = availability?.availability?.windows || [];
+  const userTimezone = availability?.user_timezone || 'Europe/Brussels';
+  
+  // Helper function to get timezone display name
+  const getTimezoneDisplay = (timezone) => {
+    try {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('en', {
+        timeZone: timezone,
+        timeZoneName: 'short'
+      });
+      const parts = formatter.formatToParts(now);
+      const timeZoneName = parts.find(part => part.type === 'timeZoneName')?.value || '';
+      
+      // Get city name from timezone
+      const cityName = timezone.split('/').pop()?.replace(/_/g, ' ') || '';
+      
+      return `${cityName} (${timeZoneName})`;
+    } catch (error) {
+      return timezone;
+    }
+  };
   
   // Calculate current month/year based on offset
   const today = new Date();
@@ -106,9 +127,14 @@ const MonthView = ({ availability, currentMonthOffset, onMonthChange, onRefresh 
     <div className="max-w-4xl mx-auto">
       {/* Month Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-slate-900">
-          {isCurrentMonth() ? "This Month" : "Month View"}
-        </h2>
+        <div>
+          <h2 className="text-2xl font-semibold text-slate-900">
+            {isCurrentMonth() ? "This Month" : "Month View"}
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Times shown in {getTimezoneDisplay(userTimezone)}
+          </p>
+        </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => navigateMonth(-1)}

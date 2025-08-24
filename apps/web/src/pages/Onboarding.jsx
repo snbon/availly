@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import OnboardingHeader from '../components/onboarding/OnboardingHeader';
 import StepIndicator from '../components/onboarding/StepIndicator';
 import WelcomeStep from '../components/onboarding/WelcomeStep';
+import TimezoneStep from '../components/onboarding/TimezoneStep';
 import ScheduleStep from '../components/onboarding/ScheduleStep';
 import CompletionStep from '../components/onboarding/CompletionStep';
 import { AlertContainer } from '../components/ui';
@@ -13,6 +14,8 @@ const Onboarding = () => {
   const { alerts, showError, removeAlert } = useAlert();
   
   const [currentStep, setCurrentStep] = useState(1);
+  const [timezone, setTimezone] = useState('Europe/Brussels');
+  const [timezoneError, setTimezoneError] = useState('');
   const [availabilityRules, setAvailabilityRules] = useState([
     {
       id: 1,
@@ -44,11 +47,16 @@ const Onboarding = () => {
     },
     {
       number: 2,
+      title: 'Timezone',
+      description: 'Set your timezone'
+    },
+    {
+      number: 3,
       title: 'Set Schedule',
       description: 'Configure when you\'re available'
     },
     {
-      number: 3,
+      number: 4,
       title: 'Complete',
       description: 'You\'re all set!'
     }
@@ -75,10 +83,32 @@ const Onboarding = () => {
     ));
   };
 
+  const handleTimezoneChange = (newTimezone) => {
+    setTimezone(newTimezone);
+    setTimezoneError('');
+  };
+
+  const validateTimezone = () => {
+    if (!timezone) {
+      setTimezoneError('Please select a timezone');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async () => {
     setIsLoading(true);
+    console.log('=== ONBOARDING SUBMIT DEBUG ===');
+    console.log('Timezone to save:', timezone);
     
     try {
+      // Update user timezone first
+      console.log('Updating timezone...');
+      const timezoneResponse = await api.put('/me/profile', {
+        timezone: timezone
+      });
+      console.log('Timezone update response:', timezoneResponse);
+
       // Convert frontend availability rules to backend format
       const backendRules = availabilityRules
         .filter(rule => rule.isActive)
@@ -91,11 +121,13 @@ const Onboarding = () => {
           };
         });
 
+      console.log('Saving availability rules:', backendRules);
       // Save availability rules to backend
       await api.post('/me/availability-rules', {
         rules: backendRules
       });
 
+      console.log('Onboarding completed successfully');
       navigate('/dashboard');
     } catch (error) {
       console.error('Failed to save availability rules:', error);
@@ -121,17 +153,31 @@ const Onboarding = () => {
         return <WelcomeStep onNext={() => setCurrentStep(2)} />;
       case 2:
         return (
+          <TimezoneStep
+            timezone={timezone}
+            onTimezoneChange={handleTimezoneChange}
+            error={timezoneError}
+            onPrevious={() => setCurrentStep(1)}
+            onNext={() => {
+              if (validateTimezone()) {
+                setCurrentStep(3);
+              }
+            }}
+          />
+        );
+      case 3:
+        return (
           <ScheduleStep
             availabilityRules={availabilityRules}
             days={days}
             onAddRule={addRule}
             onRemoveRule={removeRule}
             onUpdateRule={updateRule}
-            onPrevious={() => setCurrentStep(1)}
-            onNext={() => setCurrentStep(3)}
+            onPrevious={() => setCurrentStep(2)}
+            onNext={() => setCurrentStep(4)}
           />
         );
-      case 3:
+      case 4:
         return (
           <CompletionStep
             isLoading={isLoading}

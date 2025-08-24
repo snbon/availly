@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { brandGradients, brandTypography, brandShadows } from '../theme/brand';
 import Logo from '../components/Logo';
 import Card from '../components/ui/Card';
+import { AlertContainer } from '../components/ui';
+import { useAlert } from '../hooks/useAlert';
+
 
 // Import settings components
 import CalendarSettings from '../components/settings/CalendarSettings';
@@ -13,6 +16,7 @@ import PrivacySettings from '../components/settings/PrivacySettings';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('calendars');
+  const { alerts, removeAlert } = useAlert();
   const navigate = useNavigate();
 
   const tabs = [
@@ -84,6 +88,8 @@ const Settings = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        <AlertContainer alerts={alerts} onRemoveAlert={removeAlert} />
+        
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">

@@ -32,6 +32,46 @@ class ProfileController extends Controller
         ]);
     }
 
+    public function update(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        \Log::info('Profile update request', [
+            'user_id' => $user->id,
+            'current_timezone' => $user->timezone,
+            'requested_timezone' => $request->timezone
+        ]);
+
+        $request->validate([
+            'timezone' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!in_array($value, timezone_identifiers_list())) {
+                        $fail('The selected timezone is invalid.');
+                    }
+                }
+            ]
+        ]);
+
+        $user->update([
+            'timezone' => $request->timezone
+        ]);
+
+        // Refresh user to get updated data
+        $user->refresh();
+
+        \Log::info('Profile updated successfully', [
+            'user_id' => $user->id,
+            'new_timezone' => $user->timezone
+        ]);
+
+        return response()->json([
+            'user' => $user,
+            'message' => 'Profile updated successfully'
+        ]);
+    }
+
     public function updateUsername(Request $request): JsonResponse
     {
         $user = $request->user();

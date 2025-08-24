@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight, Code, CodeXml } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Logo from '../components/Logo';
@@ -188,9 +188,9 @@ const Login = () => {
         {/* Footer */}
         <div className="text-center mt-12">
           <p className="text-slate-500 text-sm flex items-center justify-center">
-            <Sparkles className="w-4 h-4 mr-2 text-purple-400" />
-            © 2024 Availly. Crafted with excellence.
-            <Sparkles className="w-4 h-4 ml-2 text-purple-400" />
+            <Code className="w-4 h-4 mr-2 text-purple-400" />
+            © 2025 Availly. Developed by Baghlabs.
+            <CodeXml className="w-4 h-4 ml-2 text-purple-400" />
           </p>
         </div>
       </div>

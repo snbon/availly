@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+console.log('API_BASE_URL:', API_BASE_URL);
 
 class ApiService {
   constructor() {
@@ -36,9 +37,24 @@ class ApiService {
       ...options,
     };
 
+    // Debug logging for timezone issues
+    if (endpoint.includes('/me') || endpoint.includes('profile')) {
+      console.log('API Request:', {
+        method: options.method || 'GET',
+        url,
+        hasToken: !!this.token
+      });
+    }
+
     try {
       const response = await fetch(url, config);
+      
       const data = await response.json();
+      
+      // Debug logging for timezone issues
+      if (endpoint.includes('/me') || endpoint.includes('profile')) {
+        console.log('API Response:', { status: response.status, data });
+      }
 
       if (!response.ok) {
         // Create an error object that includes the response data

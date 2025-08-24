@@ -24,7 +24,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('auth_token');
       if (token) {
+        console.log('AuthContext: Fetching user data...');
         const userData = await api.getCurrentUser();
+        console.log('AuthContext: User data received:', userData);
         setUser(userData.user);
         setIsAuthenticated(true);
       }
@@ -33,6 +35,19 @@ export const AuthProvider = ({ children }) => {
       api.clearToken();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshUser = async () => {
+    try {
+      console.log('AuthContext: Refreshing user data...');
+      const userData = await api.getCurrentUser();
+      console.log('AuthContext: Refreshed user data:', userData);
+      setUser(userData.user);
+      return userData.user;
+    } catch (error) {
+      console.error('User refresh failed:', error);
+      throw error;
     }
   };
 
@@ -130,6 +145,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     verifyEmail,
     resendVerification,
+    refreshUser,
   };
 
   return (

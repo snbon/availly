@@ -27,6 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'verification_code',
         'verification_code_expires_at',
         'email_verified_at',
+        'timezone',
     ];
 
     /**

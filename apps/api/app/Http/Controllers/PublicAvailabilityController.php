@@ -44,11 +44,12 @@ class PublicAvailabilityController extends Controller
         $availableWindows = $this->calculateAvailableWindows($user, $startDate, $endDate);
 
         // Calculate dynamic viewport based on availability
-        $viewport = $this->calculateViewport($availableWindows);
+        $viewport = $this->calculateViewport($availableWindows, $user->timezone ?? 'Europe/Brussels');
 
         return response()->json([
             'slug' => $slug,
             'user_name' => $user->name,
+            'user_timezone' => $user->timezone ?? 'Europe/Brussels',
             'range' => $startDate->format('Y-m-d') . '..' . $endDate->format('Y-m-d'),
             'viewport' => $viewport,
             'availability' => [
@@ -63,6 +64,7 @@ class PublicAvailabilityController extends Controller
     private function calculateAvailableWindows(User $user, Carbon $startDate, Carbon $endDate): array
     {
         $availableWindows = [];
+        $userTimezone = $user->timezone ?? 'Europe/Brussels';
 
         // Get user's availability rules
         $availabilityRules = $user->availabilityRules;
@@ -74,21 +76,25 @@ class PublicAvailabilityController extends Controller
             ->get();
 
         // Generate availability windows for each day in the range
-        $currentDate = $startDate->copy();
-        while ($currentDate <= $endDate) {
+        $currentDate = $startDate->copy()->setTimezone($userTimezone);
+        $endDateInUserTz = $endDate->copy()->setTimezone($userTimezone);
+
+        while ($currentDate <= $endDateInUserTz) {
             $weekday = $currentDate->dayOfWeek; // 0 = Sunday, 1 = Monday, etc.
 
             // Find availability rules for this weekday
             $dayRules = $availabilityRules->where('weekday', $weekday);
 
             foreach ($dayRules as $rule) {
-                // Convert local time to UTC for this specific date
-                $ruleStart = $currentDate->copy()
-                    ->setTimeFromTimeString($rule->start_time_local)
-                    ->utc();
-                $ruleEnd = $currentDate->copy()
-                    ->setTimeFromTimeString($rule->end_time_local)
-                    ->utc();
+                // Create availability window in user's timezone first
+                $ruleStartLocal = $currentDate->copy()
+                    ->setTimeFromTimeString($rule->start_time_local);
+                $ruleEndLocal = $currentDate->copy()
+                    ->setTimeFromTimeString($rule->end_time_local);
+
+                // Convert to UTC for calculations
+                $ruleStart = $ruleStartLocal->copy()->utc();
+                $ruleEnd = $ruleEndLocal->copy()->utc();
 
                 // Find busy events that overlap with this availability window
                 $overlappingEvents = $busyEvents->filter(function ($event) use ($ruleStart, $ruleEnd) {
@@ -163,7 +169,7 @@ class PublicAvailabilityController extends Controller
     /**
      * Calculate dynamic viewport based on availability windows
      */
-    private function calculateViewport(array $availableWindows): array
+    private function calculateViewport(array $availableWindows, string $userTimezone = 'Europe/Brussels'): array
     {
         if (empty($availableWindows)) {
             // Default viewport if no availability
@@ -173,13 +179,17 @@ class PublicAvailabilityController extends Controller
             ];
         }
 
-        // Find earliest and latest times
+        // Find earliest and latest times in user's timezone
         $earliestHour = 24;
         $latestHour = 0;
 
         foreach ($availableWindows as $window) {
-            $startHour = Carbon::parse($window['start'])->hour;
-            $endHour = Carbon::parse($window['end'])->hour;
+            // Convert UTC times to user's timezone for viewport calculation
+            $startInUserTz = Carbon::parse($window['start'])->setTimezone($userTimezone);
+            $endInUserTz = Carbon::parse($window['end'])->setTimezone($userTimezone);
+
+            $startHour = $startInUserTz->hour;
+            $endHour = $endInUserTz->hour;
 
             $earliestHour = min($earliestHour, $startHour);
             $latestHour = max($latestHour, $endHour);
