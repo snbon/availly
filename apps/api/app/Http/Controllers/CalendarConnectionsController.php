@@ -213,26 +213,41 @@ class CalendarConnectionsController extends Controller
 
         $user = Auth::user();
 
-        $events = $user->eventsCache()
-            ->inDateRange(
-                \Carbon\Carbon::parse($request->start_date)->startOfDay(),
-                \Carbon\Carbon::parse($request->end_date)->endOfDay()
-            )
-            ->orderBy('start_at_utc')
-            ->get()
-            ->map(function ($event) {
-                return [
-                    'id' => $event->id,
-                    'title' => $event->title,
-                    'start' => $event->start_at_utc->toISOString(),
-                    'end' => $event->end_at_utc->toISOString(),
-                    'all_day' => $event->all_day,
-                    'provider' => $event->provider,
-                ];
-            });
+        // Generate cache key for this request
+        $cacheKey = "calendar_events_{$user->id}_{$request->start_date}_{$request->end_date}";
+
+        // Try to get cached response (5 minute cache)
+        $cached = \Cache::remember($cacheKey, 300, function () use ($user, $request) {
+            // Quick check: if user has no calendar connections, return empty array immediately
+            if (!$user->calendarConnections()->where('status', 'active')->exists()) {
+                return [];
+            }
+
+            // Optimize query with select and limit
+            return $user->eventsCache()
+                ->select(['id', 'title', 'start_at_utc', 'end_at_utc', 'all_day', 'provider'])
+                ->inDateRange(
+                    \Carbon\Carbon::parse($request->start_date)->startOfDay(),
+                    \Carbon\Carbon::parse($request->end_date)->endOfDay()
+                )
+                ->orderBy('start_at_utc')
+                ->limit(100) // Reasonable limit for dashboard view
+                ->get()
+                ->map(function ($event) {
+                    return [
+                        'id' => $event->id,
+                        'title' => $event->title,
+                        'start' => $event->start_at_utc->toISOString(),
+                        'end' => $event->end_at_utc->toISOString(),
+                        'all_day' => $event->all_day,
+                        'provider' => $event->provider,
+                    ];
+                })
+                ->toArray();
+        });
 
         return response()->json([
-            'events' => $events
+            'events' => $cached
         ]);
     }
 

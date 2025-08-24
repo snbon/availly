@@ -89,9 +89,14 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
+        // Load profile data
+        $user->load('profile');
+        $userData = $user->toArray();
+        $userData['username'] = $user->profile?->username ?? null;
+
         return response()->json([
             'message' => 'Login successful',
-            'user' => $user,
+            'user' => $userData,
             'token' => $token,
             'requires_verification' => false
         ]);
@@ -207,8 +212,14 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
+        $user = $request->user()->load('profile');
+
+        // Add username from profile to user object for easier access
+        $userData = $user->toArray();
+        $userData['username'] = $user->profile?->username ?? null;
+
         return response()->json([
-            'user' => $request->user()
+            'user' => $userData
         ]);
     }
 
