@@ -8,7 +8,7 @@ const QuickActions = () => {
   const navigate = useNavigate();
 
   const handleMyCalendars = () => {
-    navigate('/settings#calendars');
+            navigate('/app/settings#calendars');
   };
 
   return (

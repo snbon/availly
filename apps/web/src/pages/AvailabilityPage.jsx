@@ -67,7 +67,7 @@ const AvailabilityPage = () => {
   };
 
   const handleSettingsClick = () => {
-    navigate('/settings');
+            navigate('/app/settings');
   };
 
   const handleLogout = async () => {

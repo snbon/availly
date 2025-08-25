@@ -32,7 +32,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requireVerification = tr
   // If user is authenticated and verified, but trying to access auth pages
   if (isAuthenticated && user && user.email_verified_at) {
     if (location.pathname === '/login' || location.pathname === '/register') {
-      return <Navigate to="/dashboard" replace />;
+              return <Navigate to="/app/dashboard" replace />;
     }
   }
 

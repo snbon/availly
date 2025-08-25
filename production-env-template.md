@@ -1,0 +1,95 @@
+# Production Environment Configuration
+
+## API Environment Variables (.env for Laravel)
+
+```bash
+APP_NAME="MyFreeSlots"
+APP_ENV=production
+APP_KEY=base64:YOUR_GENERATED_KEY_HERE
+APP_DEBUG=false
+APP_TIMEZONE=UTC
+APP_URL=https://api.availly.me
+
+APP_LOCALE=en
+APP_FALLBACK_LOCALE=en
+APP_FAKER_LOCALE=en_US
+
+APP_MAINTENANCE_DRIVER=file
+APP_MAINTENANCE_STORE=database
+
+BCRYPT_ROUNDS=12
+
+LOG_CHANNEL=stderr
+LOG_STACK=single
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=error
+
+# Database (PostgreSQL via Railway/Supabase)
+DB_CONNECTION=pgsql
+DB_HOST=YOUR_DB_HOST
+DB_PORT=5432
+DB_DATABASE=YOUR_DB_NAME
+DB_USERNAME=YOUR_DB_USER
+DB_PASSWORD=YOUR_DB_PASSWORD
+
+# Session and Cache (Redis)
+SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=.availly.me
+
+CACHE_STORE=redis
+CACHE_PREFIX=
+
+# Redis (Railway Redis service)
+REDIS_CLIENT=predis
+REDIS_HOST=YOUR_REDIS_HOST
+REDIS_PASSWORD=YOUR_REDIS_PASSWORD
+REDIS_PORT=6379
+REDIS_DB=0
+
+# Queue
+QUEUE_CONNECTION=redis
+
+# Mail (Resend)
+MAIL_MAILER=resend
+MAIL_FROM_ADDRESS="noreply@availly.me"
+MAIL_FROM_NAME="${APP_NAME}"
+RESEND_API_KEY=YOUR_RESEND_API_KEY
+
+# OAuth Credentials
+GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
+GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
+
+MICROSOFT_CLIENT_ID=YOUR_MICROSOFT_CLIENT_ID
+MICROSOFT_CLIENT_SECRET=YOUR_MICROSOFT_CLIENT_SECRET
+MICROSOFT_REDIRECT_URI="${APP_URL}/auth/microsoft/callback"
+
+# CORS Settings
+FRONTEND_URL=https://app.availly.me
+PUBLIC_URL=https://availly.me
+
+# Sanctum
+SANCTUM_STATEFUL_DOMAINS=app.availly.me
+SANCTUM_GUARD=web
+
+# File Storage
+FILESYSTEM_DISK=local
+
+# Broadcasting
+BROADCAST_CONNECTION=log
+
+# Vite
+VITE_APP_NAME="${APP_NAME}"
+```
+
+## Frontend Environment Variables
+
+```bash
+VITE_API_URL=https://api.availly.me
+VITE_APP_URL=https://app.availly.me
+VITE_PUBLIC_URL=https://availly.me
+NODE_ENV=production
+```

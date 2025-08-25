@@ -39,20 +39,20 @@ export const brandColors = {
 };
 
 export const brandGradients = {
-  primary: 'bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600',
-  primaryHover: 'hover:from-purple-700 hover:via-indigo-700 hover:to-blue-700',
+  primary: 'bg-gradient-to-br from-brand-600 via-indigo-600 to-blue-600',
+  primaryHover: 'hover:from-brand-700 hover:via-indigo-700 hover:to-blue-700',
   secondary: 'bg-gradient-to-r from-slate-100 to-slate-200',
-  accent: 'bg-gradient-to-r from-amber-400 to-orange-400',
+  accent: 'bg-gradient-to-r from-accent-400 to-orange-400',
   success: 'bg-gradient-to-r from-emerald-500 to-green-600',
   danger: 'bg-gradient-to-r from-red-500 to-rose-600',
-  background: 'bg-gradient-to-br from-slate-50 via-purple-50/30 to-indigo-100/50'
+  background: 'bg-gradient-to-br from-slate-50 via-brand-50/30 to-indigo-100/50'
 };
 
 export const brandShadows = {
-  card: 'shadow-lg shadow-purple-100/50',
-  cardHover: 'hover:shadow-xl hover:shadow-purple-200/50',
-  button: 'shadow-lg shadow-purple-500/25',
-  buttonHover: 'hover:shadow-xl hover:shadow-purple-500/40'
+  card: 'shadow-lg shadow-brand-100/50',
+  cardHover: 'hover:shadow-xl hover:shadow-brand-200/50',
+  button: 'shadow-lg shadow-brand-500/25',
+  buttonHover: 'hover:shadow-xl hover:shadow-brand-500/40'
 };
 
 export const brandAnimations = {
@@ -74,12 +74,12 @@ export const brandComponents = {
   card: `bg-white rounded-2xl border border-slate-200/60 ${brandShadows.card} ${brandShadows.cardHover} transition-all duration-200`,
   button: {
     primary: `${brandGradients.primary} text-white px-6 py-3 rounded-xl font-semibold ${brandShadows.button} ${brandShadows.buttonHover} ${brandAnimations.scaleHover} transition-all duration-200`,
-    secondary: `bg-white border-2 border-purple-200 text-purple-700 px-6 py-3 rounded-xl font-semibold hover:bg-purple-50 hover:border-purple-300 ${brandAnimations.scaleHover} transition-all duration-200`,
-    ghost: `text-slate-600 hover:text-purple-600 hover:bg-purple-50 px-4 py-2 rounded-lg transition-all duration-200`
+    secondary: `bg-white border-2 border-brand-200 text-brand-700 px-6 py-3 rounded-xl font-semibold hover:bg-brand-50 hover:border-brand-300 ${brandAnimations.scaleHover} transition-all duration-200`,
+    ghost: `text-slate-600 hover:text-brand-600 hover:bg-brand-50 px-4 py-2 rounded-lg transition-all duration-200`
   },
-  input: `w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white hover:border-slate-400`,
+  input: `w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-200 bg-white hover:border-slate-400`,
   badge: {
-    primary: 'bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium',
+    primary: 'bg-brand-100 text-brand-700 px-3 py-1 rounded-full text-sm font-medium',
     success: 'bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium',
     warning: 'bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm font-medium',
     danger: 'bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium'

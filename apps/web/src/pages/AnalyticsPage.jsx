@@ -36,7 +36,7 @@ const AnalyticsPage = () => {
   const isPageLoading = isLoading || !isInitialized;
 
   const handleSettingsClick = () => {
-    navigate('/settings');
+            navigate('/app/settings');
   };
 
   const handleLogout = async () => {

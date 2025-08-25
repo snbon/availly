@@ -1,0 +1,353 @@
+/* Landing page specific styles - scoped to avoid conflicts */
+
+.landing-page {
+  /* Landing page specific styles */
+}
+
+.landing-page .btn-primary {
+  background-color: rgb(147 51 234);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.landing-page .btn-primary:hover {
+  background-color: rgb(126 34 206);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.landing-page .btn-secondary {
+  background-color: white;
+  border: 1px solid rgb(209 213 219);
+  color: rgb(55 65 81);
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.landing-page .btn-secondary:hover {
+  background-color: rgb(249 250 251);
+  border-color: rgb(156 163 175);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.landing-page .btn-ghost {
+  color: rgb(75 85 99);
+  padding: 0.25rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.landing-page .btn-ghost:hover {
+  color: rgb(147 51 234);
+  background-color: rgb(250 245 255);
+}
+
+.landing-page .card {
+  background-color: white;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: box-shadow 0.2s;
+}
+
+.landing-page .card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.landing-page .container-custom {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .landing-page .container-custom {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .container-custom {
+    padding: 0 2rem;
+  }
+}
+
+.landing-page .section-spacing {
+  padding: 3rem 0;
+}
+
+@media (min-width: 640px) {
+  .landing-page .section-spacing {
+    padding: 4rem 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .section-spacing {
+    padding: 5rem 0;
+  }
+}
+
+.landing-page .section-spacing-lg {
+  padding: 4rem 0;
+}
+
+@media (min-width: 640px) {
+  .landing-page .section-spacing-lg {
+    padding: 5rem 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .section-spacing-lg {
+    padding: 6rem 0;
+  }
+}
+
+.landing-page .heading-xl {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: rgb(17 24 39);
+}
+
+@media (min-width: 640px) {
+  .landing-page .heading-xl {
+    font-size: 2.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .landing-page .heading-xl {
+    font-size: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .heading-xl {
+    font-size: 3.75rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .landing-page .heading-xl {
+    font-size: 4rem;
+  }
+}
+
+.landing-page .heading-lg {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: rgb(17 24 39);
+}
+
+@media (min-width: 640px) {
+  .landing-page .heading-lg {
+    font-size: 1.875rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .landing-page .heading-lg {
+    font-size: 2.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .heading-lg {
+    font-size: 3rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .landing-page .heading-lg {
+    font-size: 3.75rem;
+  }
+}
+
+.landing-page .heading-md {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: rgb(17 24 39);
+}
+
+@media (min-width: 640px) {
+  .landing-page .heading-md {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .landing-page .heading-md {
+    font-size: 1.875rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .heading-md {
+    font-size: 2.25rem;
+  }
+}
+
+.landing-page .heading-sm {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(17 24 39);
+}
+
+@media (min-width: 640px) {
+  .landing-page .heading-sm {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .heading-sm {
+    font-size: 1.5rem;
+  }
+}
+
+.landing-page .text-lead {
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+  line-height: 1.625;
+}
+
+@media (min-width: 640px) {
+  .landing-page .text-lead {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .landing-page .text-lead {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .text-lead {
+    font-size: 1.5rem;
+  }
+}
+
+.landing-page .text-body {
+  font-size: 0.75rem;
+  color: rgb(75 85 99);
+  line-height: 1.625;
+}
+
+@media (min-width: 640px) {
+  .landing-page .text-body {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .text-body {
+    font-size: 1.125rem;
+  }
+}
+
+.landing-page .gradient-text {
+  background: linear-gradient(to right, rgb(147 51 234), rgb(79 70 229));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.landing-page .grid-features {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .landing-page .grid-features {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .grid-features {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+.landing-page .grid-steps {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .landing-page .grid-steps {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .grid-steps {
+    gap: 3rem;
+  }
+}
+
+.landing-page .grid-testimonials {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .landing-page .grid-testimonials {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page .grid-testimonials {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+.landing-page .grid-use-cases {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .landing-page .grid-use-cases {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* Landing page specific background patterns */
+.landing-page .bg-pattern {
+  background-image: radial-gradient(circle at 25px 25px, rgba(147, 51, 234, 0.05) 2px, transparent 0);
+  background-size: 50px 50px;
+}
+
+.landing-page .bg-gradient-subtle {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+

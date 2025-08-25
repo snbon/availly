@@ -128,7 +128,7 @@ const Onboarding = () => {
       });
 
       console.log('Onboarding completed successfully');
-      navigate('/dashboard');
+              navigate('/app/dashboard');
     } catch (error) {
       console.error('Failed to save availability rules:', error);
       console.error('Error details:', error.data);
