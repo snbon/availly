@@ -76,10 +76,10 @@ const Pricing = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center mb-12 sm:mb-16"
         >
-          <h2 className="heading-lg mb-4 sm:mb-6">
+          <h2 className="h2 mb-4 sm:mb-6">
             Simple <span className="gradient-text">pricing</span>
           </h2>
-          <p className="text-lead max-w-2xl mx-auto">
+          <p className="p-medium max-w-2xl mx-auto">
             Start free during our beta period. Upgrade when you need team features.
           </p>
         </motion.div>
@@ -105,9 +105,9 @@ const Pricing = () => {
               {/* Popular badge */}
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-purple-600 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-semibold flex items-center space-x-1">
+                  <div className="bg-purple-600 text-white px-3 py-1 rounded-full font-semibold flex items-center space-x-1">
                     <Star className="w-3 h-3" />
-                    <span>Coming Soon</span>
+                    <span className="card-feature">Coming Soon</span>
                   </div>
                 </div>
               )}
@@ -116,23 +116,23 @@ const Pricing = () => {
               <div className="text-center mb-6 sm:mb-8">
                 <div className="flex items-center justify-center space-x-2 mb-3 sm:mb-4">
                   <Users className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
-                  <h3 className="heading-sm">
+                  <h3 className="card-title">
                     {plan.name}
                   </h3>
                 </div>
                 
                 <div className="mb-3 sm:mb-4">
-                  <p className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+                  <p className="card-title font-bold text-gray-900">
                     {plan.price}
                   </p>
                   {plan.period && (
-                    <p className="text-xs sm:text-sm text-gray-600">
+                    <p className="card-feature text-gray-600">
                       {plan.period}
                     </p>
                   )}
                 </div>
                 
-                <p className="text-body">
+                <p className="card-description">
                   {plan.description}
                 </p>
               </div>
@@ -154,7 +154,7 @@ const Pricing = () => {
                     <div className="w-4 h-4 sm:w-5 sm:h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-600" />
                     </div>
-                    <p className="text-body">
+                    <p className="card-feature">
                       {feature}
                     </p>
                   </motion.div>
@@ -193,10 +193,10 @@ const Pricing = () => {
         >
           <div className="card max-w-2xl mx-auto bg-blue-50 border-blue-200">
             <div className="text-center">
-              <p className="text-blue-800 font-semibold mb-2 text-sm sm:text-base">
+              <p className="card-title text-blue-800 font-semibold mb-2">
                 🚀 Beta Program
               </p>
-              <p className="text-blue-700 text-sm sm:text-base">
+              <p className="card-description text-blue-700">
                 We're currently in beta! Join now to get free access to all Individual features 
                 and help shape the future of privacy-first scheduling.
               </p>

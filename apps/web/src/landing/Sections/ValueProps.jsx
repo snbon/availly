@@ -87,10 +87,10 @@ const ValueProps = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center mb-16"
         >
-          <h2 className="heading-lg mb-6">
+          <h2 className="h2 mb-6">
             Built for <span className="gradient-text">privacy</span> and <span className="gradient-text">accuracy</span>
           </h2>
-          <p className="text-lead max-w-3xl mx-auto">
+          <p className="p-medium max-w-3xl mx-auto">
             Six key features that make Availly the smart choice for sharing your availability
           </p>
         </motion.div>
@@ -100,7 +100,7 @@ const ValueProps = () => {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
         >
           {valueProps.map((prop, index) => (
             <motion.div
@@ -111,17 +111,17 @@ const ValueProps = () => {
                 y: -5,
                 transition: { duration: 0.2 }
               }}
-              className="card group hover:border-purple-200 transition-colors duration-300"
+              className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md group hover:border-purple-200 transition-all duration-300"
             >
-              <div className={`w-12 h-12 ${prop.bgColor} rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-200`}>
-                <prop.icon className={`w-6 h-6 ${prop.color}`} />
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 ${prop.bgColor} rounded-lg flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-200`}>
+                <prop.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${prop.color}`} />
               </div>
               
-              <h3 className="heading-sm mb-4">
+              <h3 className="card-title mb-3 sm:mb-4">
                 {prop.title}
               </h3>
               
-              <p className="text-gray-600 leading-relaxed">
+              <p className="card-description text-gray-600 leading-relaxed">
                 {prop.description}
               </p>
             </motion.div>

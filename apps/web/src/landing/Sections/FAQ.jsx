@@ -76,10 +76,10 @@ const FAQ = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center mb-12 sm:mb-16"
         >
-          <h2 className="heading-lg mb-4 sm:mb-6">
+          <h2 className="h2 mb-4 sm:mb-6">
             Frequently asked <span className="gradient-text">questions</span>
           </h2>
-          <p className="text-lead max-w-2xl mx-auto">
+          <p className="p-medium max-w-2xl mx-auto">
             Everything you need to know about Availly and how it keeps your calendar private
           </p>
         </motion.div>
@@ -114,7 +114,7 @@ const FAQ = () => {
                     }
                     className="px-4 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition-colors duration-200"
                   >
-                    <p className="text-sm sm:text-lg font-semibold text-gray-900">
+                    <p className="card-title font-semibold text-gray-900">
                       {faq.question}
                     </p>
                   </AccordionSummary>
@@ -128,7 +128,7 @@ const FAQ = () => {
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.3, ease: "easeOut" }}
                         >
-                          <p className="text-body">
+                          <p className="card-description">
                             {faq.answer}
                           </p>
                         </motion.div>
@@ -150,10 +150,10 @@ const FAQ = () => {
           className="text-center"
         >
           <div className="card max-w-2xl mx-auto bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
-            <h3 className="heading-sm mb-3 sm:mb-4">
+            <h3 className="card-title mb-3 sm:mb-4">
               Still have questions?
             </h3>
-            <p className="text-body mb-4 sm:mb-6">
+            <p className="card-description mb-4 sm:mb-6">
               We're here to help! Reach out to our team and we'll get back to you as soon as possible.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">

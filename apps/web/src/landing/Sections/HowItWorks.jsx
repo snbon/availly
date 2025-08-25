@@ -63,10 +63,10 @@ const HowItWorks = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center mb-16"
         >
-          <h2 className="heading-lg mb-6">
+          <h2 className="h2 mb-6">
             How it <span className="gradient-text">works</span>
           </h2>
-          <p className="text-lead max-w-2xl mx-auto">
+          <p className="p-medium max-w-2xl mx-auto">
             Three simple steps to start sharing your availability privately
           </p>
         </motion.div>
@@ -76,10 +76,27 @@ const HowItWorks = () => {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 relative"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12 relative"
         >
           {/* Connection line for desktop */}
-          <div className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-200 via-blue-200 to-green-200"></div>
+          <motion.div 
+            className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-200 via-blue-200 to-green-200"
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
+            style={{ transformOrigin: "left" }}
+          ></motion.div>
+
+          {/* Vertical connector line for mobile */}
+          <motion.div 
+            className="lg:hidden absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-200 via-blue-200 to-green-200 transform -translate-x-1/2"
+            initial={{ scaleY: 0 }}
+            whileInView={{ scaleY: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
+            style={{ transformOrigin: "top" }}
+          ></motion.div>
 
           {steps.map((step, index) => (
             <motion.div
@@ -92,27 +109,27 @@ const HowItWorks = () => {
               }}
               className="text-center relative z-10"
             >
-              <div className="card bg-white/80 backdrop-blur-sm">
+              <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md">
                 {/* Step number */}
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                   <div className={`w-8 h-8 ${step.bgColor} border-2 border-white rounded-full flex items-center justify-center shadow-sm`}>
-                    <span className={`text-sm font-bold ${step.color}`}>
-                      {step.step}
-                    </span>
+                                    <span className={`card-feature font-bold ${step.color}`}>
+                  {step.step}
+                </span>
                   </div>
                 </div>
 
                 {/* Icon */}
-                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-6 mt-4`}>
-                  <step.icon className={`w-8 h-8 ${step.color}`} />
+                <div className={`w-12 h-12 sm:w-16 sm:h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 mt-4`}>
+                  <step.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${step.color}`} />
                 </div>
 
                 {/* Content */}
-                <h3 className="heading-sm mb-4">
+                <h3 className="card-title mb-3 sm:mb-4">
                   {step.title}
                 </h3>
                 
-                <p className="text-gray-600 leading-relaxed">
+                <p className="card-description text-gray-600 leading-relaxed">
                   {step.description}
                 </p>
               </div>
