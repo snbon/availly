@@ -5,7 +5,7 @@ FROM nginx:alpine
 RUN apk add --no-cache php82 php82-fpm php82-pdo php82-pdo_pgsql php82-pgsql
 RUN apk add --no-cache php82-mbstring php82-exif php82-pcntl php82-bcmath
 RUN apk add --no-cache php82-gd php82-zip php82-opcache php82-json
-RUN apk add --no-cache php82-curl php82-xml php82-tokenizer php82-fileinfo php82-phar php82-openssl php82-session php82-dom php82-iconv php82-simplexml php82-xmlreader gettext
+RUN apk add --no-cache php82-curl php82-xml php82-tokenizer php82-fileinfo php82-phar php82-openssl php82-session php82-dom php82-iconv php82-simplexml php82-xmlreader php82-xmlwriter php82-intl php82-ctype php82-filter php82-hash php82-pcre php82-reflection php82-spl gettext
 
 # Install Node.js for web app build
 RUN apk add --no-cache nodejs npm
