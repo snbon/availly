@@ -6,7 +6,7 @@ WORKDIR /app/web
 # Copy web app package files
 COPY apps/web/package*.json ./
 
-# Install web app dependencies
+# Install dependencies
 RUN npm ci --only=production
 
 # Copy web app source code
@@ -16,25 +16,37 @@ COPY apps/web/ ./
 RUN npm run build
 
 # Build stage for API
-FROM php:8.2-fpm as api-build
+FROM php:8.2-fpm-alpine as api-build
 
 WORKDIR /var/www/html
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies in smaller batches
+RUN apk add --no-cache \
     git \
     curl \
     libpng-dev \
-    libonig-dev \
+    oniguruma-dev \
     libxml2-dev \
     zip \
     unzip \
     libzip-dev \
-    libpq-dev \
-    && docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
+    postgresql-dev
+
+# Install PHP extensions one by one to avoid memory issues
+RUN docker-php-ext-install pdo_pgsql
+RUN docker-php-ext-install pgsql
+RUN docker-php-ext-install mbstring
+RUN docker-php-ext-install exif
+RUN docker-php-ext-install pcntl
+RUN docker-php-ext-install bcmath
+RUN docker-php-ext-install gd
+RUN docker-php-ext-install zip
 
 # Install Redis extension
-RUN pecl install redis && docker-php-ext-enable redis
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
