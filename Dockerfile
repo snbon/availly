@@ -6,8 +6,8 @@ WORKDIR /app/web
 # Copy web app package files
 COPY apps/web/package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install ALL dependencies (including dev dependencies needed for build)
+RUN npm ci
 
 # Copy web app source code
 COPY apps/web/ ./
@@ -32,15 +32,9 @@ RUN apk add --no-cache \
     libzip-dev \
     postgresql-dev
 
-# Install PHP extensions one by one to avoid memory issues
-RUN docker-php-ext-install pdo_pgsql
-RUN docker-php-ext-install pgsql
-RUN docker-php-ext-install mbstring
-RUN docker-php-ext-install exif
-RUN docker-php-ext-install pcntl
-RUN docker-php-ext-install bcmath
-RUN docker-php-ext-install gd
-RUN docker-php-ext-install zip
+# Install PHP extensions with memory optimization
+RUN docker-php-ext-configure pgsql --with-pgsql=/usr/local/pgsql
+RUN docker-php-ext-install -j$(nproc) pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
 
 # Install Redis extension
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
