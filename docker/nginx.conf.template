@@ -1,47 +1,35 @@
-# --- Redirect all plain HTTP traffic to HTTPS (except /health) ---
-server {
-    listen 0.0.0.0:PORT_REPLACE;
-    server_name _;
-
-    # Allow Railway healthcheck over plain HTTP
-    location = /health {
-        access_log off;
-        return 200 "healthy\n";
-        add_header Content-Type text/plain;
-    }
-
-    # Redirect everything else to HTTPS
-    location / {
-        return 308 https://$host$request_uri;
-    }
-}
-
-# --- Main HTTPS server (Railway terminates TLS and sets X-Forwarded-Proto) ---
 server {
     listen 0.0.0.0:PORT_REPLACE;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
 
-    # ---- Security headers ----
+    # Healthcheck (plain HTTP for Railway)
+    location = /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+
+    # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     add_header Content-Security-Policy "default-src 'self' https: http: data: blob: 'unsafe-inline'" always;
 
-    # ---- Static asset caching ----
+    # Cache static assets
     location ~* \.(css|js|gif|ico|jpeg|jpg|png|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 
-    # ---------- SPA ----------
+    # Frontend (SPA)
     location / {
         try_files $uri $uri/ /index.html;
     }
 
-    # ---------- API (Laravel) ----------
+    # API (Laravel)
     location /api/ {
         add_header Access-Control-Allow-Origin "https://availly.me" always;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
@@ -58,22 +46,19 @@ server {
         try_files $uri $uri/ @php_api;
     }
 
-    # never execute PHP from web root
+    # Block raw PHP execution from web root
     location ~ \.php$ { return 404; }
 
-    # PHP-FPM upstream
-location @php_api {
-    fastcgi_pass 127.0.0.1:9000;
-    include fastcgi_params;
+    # Laravel PHP-FPM handler
+    location @php_api {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /usr/share/nginx/html/api/public/index.php;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+        fastcgi_param HTTP_AUTHORIZATION $http_authorization;
+    }
 
-    fastcgi_param SCRIPT_FILENAME /usr/share/nginx/html/api/public/index.php;
-    fastcgi_param PATH_INFO       $fastcgi_path_info;
-    fastcgi_param REQUEST_METHOD  $request_method;
-    fastcgi_param REQUEST_URI     $request_uri;
-    fastcgi_param QUERY_STRING    $query_string;
-    fastcgi_param HTTP_AUTHORIZATION $http_authorization;
-}
-
-    # deny sensitive files
+    # Block sensitive files
     location ~ /\.(env|git) { deny all; }
 }
