@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Availly logo wordmark">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7C82FF"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon -->
+  <g id="icon">
+    <circle cx="300" cy="315" r="88" fill="url(#g)"/>
+    <!-- Calendar shape -->
+    <g>
+      <!-- rings -->
+      <rect x="278" y="270" width="10" height="22" rx="5" fill="white"/>
+      <rect x="312" y="270" width="10" height="22" rx="5" fill="white"/>
+      <!-- body -->
+      <rect x="260" y="292" width="80" height="60" rx="12" fill="white"/>
+      <!-- check -->
+      <path d="M274 324 L290 340 L318 308" stroke="url(#g)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="420" y="340"
+        fill="url(#g)"
+        font-family="Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif"
+        font-weight="700"
+        font-size="120"
+        letter-spacing="0.5">Availly</text>
+</svg>

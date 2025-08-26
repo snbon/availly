@@ -33,17 +33,6 @@ const Logo = ({ size = 'md', showText = true, variant = 'default' }) => {
         {/* Clock overlay */}
         <Clock className={`absolute ${sizes[size].icon} ${iconColor} opacity-30 rotate-12 group-hover:rotate-45 transition-transform duration-300`} />
       </div>
-      
-      {showText && (
-        <div>
-          <h1 className={`${sizes[size].text} font-bold ${textColor} tracking-tight`}>
-            <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Availly</span>
-          </h1>
-          {size === 'lg' || size === 'xl' ? (
-            <p className="text-sm text-slate-600 font-medium">Calendar Management</p>
-          ) : null}
-        </div>
-      )}
     </div>
   );
 };
