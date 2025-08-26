@@ -4,12 +4,21 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
-    # force HTTPS behind Railway's proxy
-    if ($http_x_forwarded_proto != "https") {
-        return 301 https://$host$request_uri;
+    # --- Healthcheck over plain HTTP ---
+    location = /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
     }
 
-    # basic security headers
+      # Redirect HTTP -> HTTPS for everything else
+    if ($enforce_https) {
+        if ($http_x_forwarded_proto != "https") {
+            return 301 https://$host$request_uri;
+        }
+    }
+
+    # security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header X-Content-Type-Options "nosniff" always;
@@ -21,13 +30,6 @@ server {
     gzip_vary on;
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml application/javascript application/json image/svg+xml;
-
-    # healthcheck
-    location /health {
-        access_log off;
-        return 200 "healthy\n";
-        add_header Content-Type text/plain;
-    }
 
     # cache static assets
     location ~* \.(css|js|gif|ico|jpeg|jpg|png|svg|woff|woff2|ttf|eot)$ {
@@ -41,15 +43,13 @@ server {
     }
 
     # ---------- BACKEND (Laravel under /api) ----------
-    # CORS for API
     location /api/ {
-        # CORS headers
+        # CORS (adjust origin if needed)
         add_header Access-Control-Allow-Origin "https://availly.me" always;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
         add_header Access-Control-Allow-Headers "Origin, Content-Type, Accept, Authorization, X-Requested-With" always;
         add_header Access-Control-Allow-Credentials "true" always;
 
-        # Preflight
         if ($request_method = OPTIONS) {
             add_header Access-Control-Max-Age 1728000 always;
             add_header Content-Type "text/plain; charset=utf-8";
@@ -57,14 +57,12 @@ server {
             return 204;
         }
 
-        # pass all API traffic to Laravel's front controller
         try_files $uri $uri/ @php_api;
     }
 
-    # never execute PHP from the web root
+    # never execute PHP from web root
     location ~ \.php$ { return 404; }
 
-    # PHP-FPM upstream for Laravel API
     location @php_api {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
