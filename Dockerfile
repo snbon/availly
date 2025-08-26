@@ -39,14 +39,13 @@ RUN npm run build
 # Remove node_modules and package files (keep only built files)
 RUN rm -rf node_modules package*.json
 
-# Copy API source code
+# Copy API source code (Laravel backend only)
 COPY apps/api/ ./api/
 
 # Install Composer and PHP dependencies
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-WORKDIR /usr/share/nginx/html/api
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-WORKDIR /usr/share/nginx/html
+RUN cd /usr/share/nginx/html/api && \
+  composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # Copy configurations
 COPY docker/nginx-main.conf /etc/nginx/nginx.conf
