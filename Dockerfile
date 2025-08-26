@@ -25,10 +25,10 @@ RUN rm -rf node_modules package*.json
 # Copy API source code (Laravel backend)
 COPY apps/api/ ./api/
 
-# Install Composer and PHP dependencies
+# Install Composer and PHP dependencies (use absolute paths)
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN cd /usr/share/nginx/html/api && \
-  composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+  /usr/bin/php /usr/bin/composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # Copy configurations
 COPY docker/nginx-main.conf /etc/nginx/nginx.conf
