@@ -20,7 +20,7 @@ FROM php:8.2-fpm-alpine as api-build
 
 WORKDIR /var/www/html
 
-# Install system dependencies in smaller batches
+# Install system dependencies in smaller batches to reduce memory usage
 RUN apk add --no-cache \
   git \
   curl \
@@ -30,16 +30,25 @@ RUN apk add --no-cache \
   zip \
   unzip \
   libzip-dev \
-  postgresql-dev \
+  postgresql-dev
+
+# Install build tools separately
+RUN apk add --no-cache \
   autoconf \
   gcc \
   g++ \
   make \
   linux-headers
 
-# Install PHP extensions with memory optimization
-RUN docker-php-ext-configure pgsql --with-pgsql=/usr/local/pgsql
-RUN docker-php-ext-install -j$(nproc) pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
+# Install PHP extensions one by one to avoid memory spikes
+RUN docker-php-ext-install pdo_pgsql
+RUN docker-php-ext-install pgsql
+RUN docker-php-ext-install mbstring
+RUN docker-php-ext-install exif
+RUN docker-php-ext-install pcntl
+RUN docker-php-ext-install bcmath
+RUN docker-php-ext-install gd
+RUN docker-php-ext-install zip
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
