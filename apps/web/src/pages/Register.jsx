@@ -109,10 +109,10 @@ const Register = () => {
         {/* Logo and Header */}
         <div className="text-center mb-10">
           <div className="flex justify-center mb-8">
-            <Logo size="xl" variant="default" />
+            <Logo size="md" variant="default" />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">Join Availly</h1>
-          <p className="text-slate-600 text-xl">Start your productivity journey today</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">Welcome</h1>
+          <p className="text-slate-600 text-sm">Sharing your availability has never been easier</p>
         </div>
 
         {/* Registration Form */}
@@ -277,7 +277,7 @@ const Register = () => {
         <div className="text-center mt-12">
           <p className="text-slate-500 text-sm flex items-center justify-center">
             <Code className="w-4 h-4 mr-2 text-purple-400" />
-            © 2025 Availly. Developed by Baghlabs.
+            © 2025 Availly. Product by Baghlabs.
             <CodeXml className="w-4 h-4 ml-2 text-purple-400" />
           </p>
         </div>

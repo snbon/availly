@@ -81,10 +81,10 @@ const Login = () => {
         {/* Logo and Header */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-8">
-            <Logo size="xl" variant="default" />
+            <Logo size="md" variant="default" />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">Welcome back</h1>
-          <p className="text-slate-600 text-xl">Sign in to continue your journey</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">Hi there!</h1>
+          <p className="text-slate-600 text-sm">Sign in to continue your journey</p>
         </div>
 
         {/* Login Form */}
@@ -189,7 +189,7 @@ const Login = () => {
         <div className="text-center mt-12">
           <p className="text-slate-500 text-sm flex items-center justify-center">
             <Code className="w-4 h-4 mr-2 text-purple-400" />
-            © 2025 Availly. Developed by Baghlabs.
+            © 2025 Availly. Product by Baghlabs.
             <CodeXml className="w-4 h-4 ml-2 text-purple-400" />
           </p>
         </div>
