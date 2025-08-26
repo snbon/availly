@@ -1,27 +1,11 @@
-# Simple single-stage Dockerfile for Railway
+# Simple single-stage Dockerfile for Railway (memory optimized)
 FROM nginx:alpine
 
-# Install PHP and required extensions
-RUN apk add --no-cache \
-  php82 \
-  php82-fpm \
-  php82-pdo \
-  php82-pdo_pgsql \
-  php82-pgsql \
-  php82-mbstring \
-  php82-exif \
-  php82-pcntl \
-  php82-bcmath \
-  php82-gd \
-  php82-zip \
-  php82-opcache \
-  php82-json \
-  php82-curl \
-  php82-xml \
-  php82-tokenizer \
-  php82-fileinfo \
-  php82-phar \
-  gettext
+# Install PHP and required extensions in smaller chunks to avoid memory issues
+RUN apk add --no-cache php82 php82-fpm php82-pdo php82-pdo_pgsql php82-pgsql
+RUN apk add --no-cache php82-mbstring php82-exif php82-pcntl php82-bcmath
+RUN apk add --no-cache php82-gd php82-zip php82-opcache php82-json
+RUN apk add --no-cache php82-curl php82-xml php82-tokenizer php82-fileinfo php82-phar gettext
 
 # Set working directory
 WORKDIR /usr/share/nginx/html
