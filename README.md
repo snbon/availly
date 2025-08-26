@@ -16,8 +16,5 @@ A privacy-first availability sharing platform that turns your real calendar into
 - **Database**: PostgreSQL
 - **Deployment**: Railway
 
-## Getting Started
-
-See the individual app directories for setup instructions:
-- `apps/web/` - Frontend React application
-- `apps/api/` - Laravel backend API
+## Currently free during beta!
+https://availly.me 
