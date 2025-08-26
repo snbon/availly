@@ -28,11 +28,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy composer files
 COPY composer.json composer.lock ./
 
+# Copy application code first (so artisan is available)
+COPY . .
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-# Copy application code
-COPY . .
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
