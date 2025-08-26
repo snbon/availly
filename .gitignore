@@ -7,10 +7,7 @@ vendor/
 .env.local
 .env.production
 
-# Build outputs
-dist/
-build/
-public/build/
+
 
 # Logs
 *.log
