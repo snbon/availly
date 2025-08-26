@@ -3,10 +3,10 @@ import { Calendar, Clock, Sparkles } from 'lucide-react';
 
 const Logo = ({ size = 'md', showText = true, variant = 'default' }) => {
   const sizes = {
-    sm: { container: 'w-8 h-8', icon: 'w-4 h-4', text: 'text-sm' },
-    md: { container: 'w-12 h-12', icon: 'w-6 h-6', text: 'text-xl' },
-    lg: { container: 'w-16 h-16', icon: 'w-8 h-8', text: 'text-2xl' },
-    xl: { container: 'w-20 h-20', icon: 'w-10 h-10', text: 'text-3xl' }
+    sm: { container: 'w-5 h-5', icon: 'w-4 h-4', text: 'text-sm' },
+    md: { container: 'w-6 h-6', icon: 'w-6 h-6', text: 'text-xl' },
+    lg: { container: 'w-10 h-10', icon: 'w-8 h-8', text: 'text-2xl' },
+    xl: { container: 'w-15 h-15', icon: 'w-10 h-10', text: 'text-3xl' }
   };
 
   const variants = {
