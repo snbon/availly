@@ -60,9 +60,8 @@ RUN apk add --no-cache \
   php82-phar \
   gettext
 
-# Create www-data user
-RUN addgroup -g 82 www-data && \
-  adduser -D -s /bin/sh -u 82 -G www-data www-data
+# Use existing nginx user instead of creating www-data
+# The nginx:alpine image already has the nginx user
 
 # Copy built web app
 COPY --from=web-build /app/web/dist ./
@@ -89,10 +88,10 @@ COPY docker/php.ini /etc/php82/conf.d/custom.ini
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Create symlinks and directories
+# Create symlinks and directories (using nginx user)
 RUN ln -s /usr/share/nginx/html/api/public /usr/share/nginx/html/public_api && \
   mkdir -p /var/log/php-fpm /var/log/nginx && \
-  chown -R www-data:www-data /var/log/php-fpm /usr/share/nginx/html/api && \
+  chown -R nginx:nginx /var/log/php-fpm /usr/share/nginx/html/api && \
   chown nginx:nginx /var/log/nginx && \
   chmod -R 755 /usr/share/nginx/html/api/storage /usr/share/nginx/html/api/bootstrap/cache
 
