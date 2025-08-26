@@ -10,6 +10,9 @@ RUN apk add --no-cache php82-curl php82-xml php82-tokenizer php82-fileinfo php82
 # Install Node.js for web app build
 RUN apk add --no-cache nodejs npm
 
+# Ensure PHP is in PATH and create symlink if needed
+RUN ln -sf /usr/bin/php82 /usr/bin/php
+
 # Set working directory
 WORKDIR /usr/share/nginx/html
 
@@ -25,10 +28,10 @@ RUN rm -rf node_modules package*.json
 # Copy API source code (Laravel backend)
 COPY apps/api/ ./api/
 
-# Install Composer and PHP dependencies (use absolute paths)
+# Install Composer and PHP dependencies
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN cd /usr/share/nginx/html/api && \
-  /usr/bin/php /usr/bin/composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+  php /usr/bin/composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # Copy configurations
 COPY docker/nginx-main.conf /etc/nginx/nginx.conf
