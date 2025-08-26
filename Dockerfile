@@ -24,7 +24,7 @@ RUN npm run build
 RUN cp -r dist/* /usr/share/nginx/html/ && rm -rf dist node_modules package*.json
 
 # Copy backend
-COPY apps/api/ ./api/
+COPY . /usr/share/nginx/html/api
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /usr/share/nginx/html/api
 RUN php /usr/bin/composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
@@ -48,6 +48,7 @@ RUN mkdir -p \
   /usr/share/nginx/html/api/bootstrap/cache && \
   chown -R nginx:nginx /usr/share/nginx/html/api && \
   chmod -R 775 /usr/share/nginx/html/api/storage /usr/share/nginx/html/api/bootstrap/cache
+
 
 
 EXPOSE 80
