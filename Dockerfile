@@ -38,14 +38,16 @@ COPY docker/php.ini /etc/php82/conf.d/custom.ini
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Fix Laravel storage/logs and permissions
+# Fix Laravel storage & permissions
 RUN mkdir -p \
-  /var/log/php-fpm \
-  /var/log/nginx \
-  /usr/share/nginx/html/api/storage/logs && \
+  /usr/share/nginx/html/api/storage/app \
+  /usr/share/nginx/html/api/storage/framework/cache \
+  /usr/share/nginx/html/api/storage/framework/sessions \
+  /usr/share/nginx/html/api/storage/framework/views \
+  /usr/share/nginx/html/api/storage/logs \
+  /usr/share/nginx/html/api/bootstrap/cache && \
   chown -R nginx:nginx /usr/share/nginx/html/api && \
   chmod -R 775 /usr/share/nginx/html/api/storage /usr/share/nginx/html/api/bootstrap/cache
-
 
 
 EXPOSE 80
