@@ -24,10 +24,6 @@ phpunit.xml
 .phpunit.result.cache
 
 # Exclude build artifacts
-dist/
-build/
-vendor/
-composer.lock
 
 # Exclude OS files
 .DS_Store
