@@ -97,7 +97,7 @@
         <p>Enter this code in the app to verify your email address and start managing your calendar.</p>
 
         <div style="text-align: center;">
-            <a href="{{ env('FRONTEND_URL', 'http://localhost:5173') }}/verify-email?email={{ urlencode($user->email) }}&code={{ $verificationCode }}"
+            <a href="{{ env('FRONTEND_URL', 'https://app.availly.me') }}/verify-email?email={{ urlencode($user->email) }}&code={{ $verificationCode }}"
                 class="button">
                 Verify Email Address
             </a>
