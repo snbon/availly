@@ -7,20 +7,11 @@ RUN apk add --no-cache php82-mbstring php82-exif php82-pcntl php82-bcmath
 RUN apk add --no-cache php82-gd php82-zip php82-opcache php82-json
 RUN apk add --no-cache php82-curl php82-xml php82-tokenizer php82-fileinfo php82-phar gettext
 
-# Install Node.js for web app build
-RUN apk add --no-cache nodejs npm
-
 # Set working directory
 WORKDIR /usr/share/nginx/html
 
-# Build web app
-COPY apps/web/package*.json ./
-RUN npm ci --prefer-offline
-COPY apps/web/ ./
-RUN npm run build
-
-# Clean up Node.js files
-RUN rm -rf node_modules package*.json
+# Copy pre-built web app (now accessible since .dockerignore was updated)
+COPY apps/web/dist/ ./
 
 # Copy API source code (Laravel backend)
 COPY apps/api/ ./api/
