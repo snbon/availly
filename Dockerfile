@@ -1,14 +1,14 @@
-# Multi-stage build optimized for Railway memory constraints
+# Ultra-optimized multi-stage build for Railway memory constraints
 
-# Stage 1: Web app build (lightweight)
+# Stage 1: Web app build (minimal)
 FROM node:18-alpine as web-build
 WORKDIR /app/web
 COPY apps/web/package*.json ./
-RUN npm ci --only=production
+RUN npm ci --only=production --prefer-offline
 COPY apps/web/ ./
 RUN npm run build
 
-# Stage 2: PHP extensions build (minimal)
+# Stage 2: PHP extensions build (minimal dependencies only)
 FROM php:8.2-fpm-alpine as php-extensions
 RUN apk add --no-cache \
   postgresql-dev \
@@ -18,17 +18,27 @@ RUN apk add --no-cache \
   libzip-dev
 RUN docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
 
-# Stage 3: Composer dependencies (separate to avoid memory issues)
+# Stage 3: Composer dependencies (with memory optimization)
 FROM composer:latest as composer
 WORKDIR /app
+# Copy only composer files first
 COPY apps/api/composer.json apps/api/composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+# Install with aggressive memory optimization
+RUN composer install \
+  --no-dev \
+  --optimize-autoloader \
+  --no-interaction \
+  --no-scripts \
+  --prefer-dist \
+  --no-progress \
+  --no-ansi \
+  --memory-limit=-1
 
-# Stage 4: Final production image
+# Stage 4: Final production image (ultra-lightweight)
 FROM nginx:alpine
 WORKDIR /usr/share/nginx/html
 
-# Install only essential PHP packages (no build tools)
+# Install only runtime PHP packages (no build tools)
 RUN apk add --no-cache \
   php82 \
   php82-fpm \
@@ -63,7 +73,7 @@ COPY apps/web/docker/env.template.js ./env.template.js
 # Copy PHP extensions from build stage
 COPY --from=php-extensions /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
 
-# Copy Composer dependencies
+# Copy Composer dependencies (pre-installed)
 COPY --from=composer /app/vendor/ ./api/vendor/
 
 # Copy API source code (without vendor)
