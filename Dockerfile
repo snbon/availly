@@ -59,6 +59,15 @@ FROM nginx:alpine as final
 # Install envsubst for environment variable substitution
 RUN apk add --no-cache gettext
 
+# Copy web app build artifacts FIRST
+COPY --from=web-build /app/web/dist /usr/share/nginx/html
+
+# Copy environment template from web build
+COPY --from=web-build /app/web/docker/env.template.js /usr/share/nginx/html/env.template.js
+
+# Copy API app build artifacts
+COPY --from=api-build /var/www/html /usr/share/nginx/html/api
+
 # Copy Nginx configuration
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
@@ -71,12 +80,6 @@ COPY docker/php.ini /etc/php82/conf.d/custom.ini
 # Copy entrypoint script
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-
-# Copy web app build artifacts
-COPY --from=web-build /app/web/dist /usr/share/nginx/html
-
-# Copy API app build artifacts
-COPY --from=api-build /var/www/html /usr/share/nginx/html/api
 
 # Create a symbolic link for Laravel's public directory
 RUN ln -s /usr/share/nginx/html/api/public /usr/share/nginx/html/public_api
