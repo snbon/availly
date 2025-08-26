@@ -4,7 +4,44 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 
-Route::get('/health', fn() => response()->json(['status' => 'ok']));
+Route::get('/health', function() {
+    try {
+        // Test database connection
+        \DB::connection()->getPdo();
+
+        // Test basic database operations
+        $userCount = \App\Models\User::count();
+
+        // Check if required tables exist
+        $tables = \DB::select('SHOW TABLES');
+        $tableNames = array_map(function($table) {
+            return array_values((array) $table)[0];
+        }, $tables);
+
+        // Check if users table has required columns
+        $userColumns = \DB::select('DESCRIBE users');
+        $columnNames = array_map(function($column) {
+            return $column->Field;
+        }, $userColumns);
+
+        return response()->json([
+            'status' => 'ok',
+            'database' => 'connected',
+            'user_count' => $userCount,
+            'tables' => $tableNames,
+            'user_columns' => $columnNames,
+            'timestamp' => now()->toISOString()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'database' => 'disconnected',
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'timestamp' => now()->toISOString()
+        ], 500);
+    }
+});
 
 // Debug route to check Google OAuth config (remove in production)
 Route::get('/debug/google-config', function() {

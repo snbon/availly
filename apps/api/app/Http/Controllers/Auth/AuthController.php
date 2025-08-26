@@ -60,46 +60,93 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
+        try {
+            \Log::info('Login attempt', ['email' => $request->email]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+            // Test database connection
+            try {
+                \DB::connection()->getPdo();
+                \Log::info('Database connection successful');
+            } catch (\Exception $dbError) {
+                \Log::error('Database connection failed: ' . $dbError->getMessage());
+                return response()->json([
+                    'message' => 'Database connection error',
+                    'error' => 'Unable to connect to database'
+                ], 500);
+            }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|string|email',
+                'password' => 'required|string',
             ]);
-        }
 
-        $user = User::where('email', $request->email)->first();
+            if ($validator->fails()) {
+                \Log::warning('Login validation failed', ['errors' => $validator->errors()]);
+                return response()->json([
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-        if (!$user->email_verified_at) {
+            if (!Auth::attempt($request->only('email', 'password'))) {
+                \Log::warning('Login failed - invalid credentials', ['email' => $request->email]);
+                throw ValidationException::withMessages([
+                    'email' => ['The provided credentials are incorrect.'],
+                ]);
+            }
+
+            $user = User::where('email', $request->email)->first();
+            \Log::info('User found for login', ['user_id' => $user->id, 'email' => $user->email]);
+
+            if (!$user->email_verified_at) {
+                \Log::info('Login blocked - email not verified', ['user_id' => $user->id]);
+                return response()->json([
+                    'message' => 'Please verify your email before logging in.',
+                    'requires_verification' => true
+                ], 403);
+            }
+
+            try {
+                $token = $user->createToken('auth-token')->plainTextToken;
+                \Log::info('Token created successfully', ['user_id' => $user->id, 'token_length' => strlen($token)]);
+            } catch (\Exception $tokenError) {
+                \Log::error('Token creation failed: ' . $tokenError->getMessage(), [
+                    'user_id' => $user->id,
+                    'trace' => $tokenError->getTraceAsString()
+                ]);
+                return response()->json([
+                    'message' => 'Authentication failed - unable to create token',
+                    'error' => 'Token creation error'
+                ], 500);
+            }
+
+            // Load profile data
+            try {
+                $user->load('profile');
+                $userData = $user->toArray();
+                $userData['username'] = $user->profile?->username ?? null;
+                \Log::info('Profile loaded successfully', ['user_id' => $user->id, 'has_profile' => !!$user->profile]);
+            } catch (\Exception $profileError) {
+                \Log::warning('Profile loading failed, continuing without profile: ' . $profileError->getMessage());
+                $userData = $user->toArray();
+                $userData['username'] = null;
+            }
+
+            \Log::info('Login successful', ['user_id' => $user->id]);
+
             return response()->json([
-                'message' => 'Please verify your email before logging in.',
-                'requires_verification' => true
-            ], 403);
+                'message' => 'Login successful',
+                'user' => $userData,
+                'token' => $token,
+                'requires_verification' => false
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Login error: ' . $e->getMessage(), [
+                'email' => $request->email,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
         }
-
-        $token = $user->createToken('auth-token')->plainTextToken;
-
-        // Load profile data
-        $user->load('profile');
-        $userData = $user->toArray();
-        $userData['username'] = $user->profile?->username ?? null;
-
-        return response()->json([
-            'message' => 'Login successful',
-            'user' => $userData,
-            'token' => $token,
-            'requires_verification' => false
-        ]);
     }
 
     public function verifyEmail(Request $request)
