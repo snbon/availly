@@ -21,25 +21,15 @@ RUN apk add --no-cache \
   php82-tokenizer \
   php82-fileinfo \
   php82-phar \
-  gettext \
-  nodejs \
-  npm
+  gettext
 
 # Set working directory
 WORKDIR /usr/share/nginx/html
 
-# Copy package files and install web dependencies
-COPY apps/web/package*.json ./
-RUN npm ci --prefer-offline
+# Copy pre-built web app (no need to build in Docker)
+COPY apps/web/dist/ ./
 
-# Copy web source and build
-COPY apps/web/ ./
-RUN npm run build
-
-# Remove node_modules and package files (keep only built files)
-RUN rm -rf node_modules package*.json
-
-# Copy API source code (Laravel backend only)
+# Copy API source code (Laravel backend)
 COPY apps/api/ ./api/
 
 # Install Composer and PHP dependencies
