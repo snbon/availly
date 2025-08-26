@@ -1,15 +1,27 @@
+# --- Redirect all plain HTTP traffic to HTTPS (except /health) ---
 server {
     listen 0.0.0.0:PORT_REPLACE;
     server_name _;
-    root /usr/share/nginx/html;
-    index index.html;
 
-    # ---- Healthcheck (no redirect) ----
+    # Allow Railway healthcheck over plain HTTP
     location = /health {
         access_log off;
         return 200 "healthy\n";
         add_header Content-Type text/plain;
     }
+
+    # Redirect everything else to HTTPS
+    location / {
+        return 308 https://$host$request_uri;
+    }
+}
+
+# --- Main HTTPS server (Railway terminates TLS and sets X-Forwarded-Proto) ---
+server {
+    listen 0.0.0.0:PORT_REPLACE;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
 
     # ---- Security headers ----
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -18,22 +30,19 @@ server {
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     add_header Content-Security-Policy "default-src 'self' https: http: data: blob: 'unsafe-inline'" always;
 
-    # ---- Static cache ----
+    # ---- Static asset caching ----
     location ~* \.(css|js|gif|ico|jpeg|jpg|png|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 
-    # ---------- FRONTEND ----------
+    # ---------- SPA ----------
     location / {
-        if ($http_x_forwarded_proto != "https") { return 301 https://$host$request_uri; }
         try_files $uri $uri/ /index.html;
     }
 
-    # ---------- BACKEND ----------
+    # ---------- API (Laravel) ----------
     location /api/ {
-        if ($http_x_forwarded_proto != "https") { return 301 https://$host$request_uri; }
-
         add_header Access-Control-Allow-Origin "https://availly.me" always;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
         add_header Access-Control-Allow-Headers "Origin, Content-Type, Accept, Authorization, X-Requested-With" always;
@@ -49,8 +58,10 @@ server {
         try_files $uri $uri/ @php_api;
     }
 
+    # never execute PHP from web root
     location ~ \.php$ { return 404; }
 
+    # PHP-FPM upstream
     location @php_api {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
@@ -60,5 +71,6 @@ server {
         fastcgi_param HTTP_AUTHORIZATION $http_authorization;
     }
 
+    # deny sensitive files
     location ~ /\.(env|git) { deny all; }
 }
