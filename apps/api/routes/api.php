@@ -12,16 +12,16 @@ Route::get('/health', function() {
         // Test basic database operations
         $userCount = \App\Models\User::count();
 
-        // Check if required tables exist
-        $tables = \DB::select('SHOW TABLES');
+                // Check if required tables exist (PostgreSQL)
+        $tables = \DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
         $tableNames = array_map(function($table) {
-            return array_values((array) $table)[0];
+            return $table->tablename;
         }, $tables);
 
-        // Check if users table has required columns
-        $userColumns = \DB::select('DESCRIBE users');
+        // Check if users table has required columns (PostgreSQL)
+        $userColumns = \DB::select("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND table_schema = 'public'");
         $columnNames = array_map(function($column) {
-            return $column->Field;
+            return $column->column_name;
         }, $userColumns);
 
         return response()->json([

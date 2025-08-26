@@ -94,7 +94,13 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            'sslmode' => env('DB_SSLMODE', 'require'),
+            'sslcert' => env('DB_SSLCERT'),
+            'sslkey' => env('DB_SSLKEY'),
+            'sslrootcert' => env('DB_SSLROOTCERT'),
+            'options' => extension_loaded('pdo_pgsql') ? array_filter([
+                PDO::PGSQL_ATTR_SSL_MODE => PDO::PGSQL_SSL_MODE_REQUIRE,
+            ]) : [],
         ],
 
         'sqlsrv' => [

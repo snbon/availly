@@ -65,13 +65,28 @@ class AuthController extends Controller
 
             // Test database connection
             try {
-                \DB::connection()->getPdo();
-                \Log::info('Database connection successful');
+                $pdo = \DB::connection()->getPdo();
+                \Log::info('Database connection successful', [
+                    'driver' => \DB::connection()->getDriverName(),
+                    'database' => \DB::connection()->getDatabaseName(),
+                    'host' => \DB::connection()->getConfig('host'),
+                    'port' => \DB::connection()->getConfig('port')
+                ]);
             } catch (\Exception $dbError) {
-                \Log::error('Database connection failed: ' . $dbError->getMessage());
+                \Log::error('Database connection failed: ' . $dbError->getMessage(), [
+                    'connection_config' => [
+                        'driver' => config('database.default'),
+                        'host' => config('database.connections.pgsql.host'),
+                        'port' => config('database.connections.pgsql.port'),
+                        'database' => config('database.connections.pgsql.database'),
+                        'username' => config('database.connections.pgsql.username'),
+                        'sslmode' => config('database.connections.pgsql.sslmode')
+                    ],
+                    'trace' => $dbError->getTraceAsString()
+                ]);
                 return response()->json([
                     'message' => 'Database connection error',
-                    'error' => 'Unable to connect to database'
+                    'error' => 'Unable to connect to database: ' . $dbError->getMessage()
                 ], 500);
             }
 
