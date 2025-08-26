@@ -75,6 +75,10 @@ RUN apk add --no-cache \
   php82-phar \
   gettext
 
+# Create www-data user and group
+RUN addgroup -g 82 -S www-data && \
+  adduser -u 82 -D -S -G www-data www-data
+
 # Copy main nginx configuration
 COPY docker/nginx-main.conf /etc/nginx/nginx.conf
 
@@ -104,10 +108,15 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN ln -s /usr/share/nginx/html/api/public /usr/share/nginx/html/public_api
 
 # Create log directory for PHP-FPM
-RUN mkdir -p /var/log/php-fpm && chown nginx:nginx /var/log/php-fpm
+RUN mkdir -p /var/log/php-fpm && chown www-data:www-data /var/log/php-fpm
 
 # Create nginx log directory
 RUN mkdir -p /var/log/nginx && chown nginx:nginx /var/log/nginx
+
+# Set proper permissions for API files
+RUN chown -R www-data:www-data /usr/share/nginx/html/api && \
+  chmod -R 755 /usr/share/nginx/html/api/storage && \
+  chmod -R 755 /usr/share/nginx/html/api/bootstrap/cache
 
 # Expose port 80
 EXPOSE 80
