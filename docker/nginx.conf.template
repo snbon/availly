@@ -1,0 +1,27 @@
+server {
+    listen ${PORT:-8080};
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+
+    location /api/ {
+        try_files $uri $uri/ @php;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location @php {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /usr/share/nginx/html/api/public/index.php;
+        include fastcgi_params;
+    }
+}
