@@ -1,46 +1,7 @@
-# Ultra-optimized multi-stage build for Railway memory constraints
-
-# Stage 1: Web app build (minimal)
-FROM node:18-alpine AS web-build
-WORKDIR /app/web
-COPY apps/web/package*.json ./
-RUN npm ci --only=production --prefer-offline
-COPY apps/web/ ./
-RUN npm run build
-
-# Stage 2: PHP extensions build (minimal dependencies only)
-FROM php:8.2-fpm-alpine AS php-extensions
-RUN apk add --no-cache \
-  postgresql-dev \
-  libpng-dev \
-  oniguruma-dev \
-  libxml2-dev \
-  libzip-dev
-RUN docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
-
-# Stage 3: Composer dependencies (with memory optimization)
-FROM composer:2.7 AS composer
-WORKDIR /app
-# Copy only composer files first
-COPY apps/api/composer.json apps/api/composer.lock ./
-# Install with aggressive memory optimization and error handling
-RUN composer install \
-  --no-dev \
-  --optimize-autoloader \
-  --no-interaction \
-  --no-scripts \
-  --prefer-dist \
-  --no-progress \
-  --no-ansi \
-  --memory-limit=-1 \
-  --prefer-stable \
-  --sort-packages
-
-# Stage 4: Final production image (ultra-lightweight)
+# Simple single-stage Dockerfile for Railway
 FROM nginx:alpine
-WORKDIR /usr/share/nginx/html
 
-# Install only runtime PHP packages (no build tools)
+# Install PHP and required extensions
 RUN apk add --no-cache \
   php82 \
   php82-fpm \
@@ -60,25 +21,32 @@ RUN apk add --no-cache \
   php82-tokenizer \
   php82-fileinfo \
   php82-phar \
-  gettext
+  gettext \
+  nodejs \
+  npm
 
-# Use existing nginx user instead of creating www-data
-# The nginx:alpine image already has the nginx user
+# Set working directory
+WORKDIR /usr/share/nginx/html
 
-# Copy built web app
-COPY --from=web-build /app/web/dist ./
+# Copy package files and install web dependencies
+COPY apps/web/package*.json ./
+RUN npm ci --prefer-offline
 
-# Copy environment template
-COPY apps/web/docker/env.template.js ./env.template.js
+# Copy web source and build
+COPY apps/web/ ./
+RUN npm run build
 
-# Copy PHP extensions from build stage
-COPY --from=php-extensions /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
+# Remove node_modules and package files (keep only built files)
+RUN rm -rf node_modules package*.json
 
-# Copy Composer dependencies (pre-installed)
-COPY --from=composer /app/vendor/ ./api/vendor/
-
-# Copy API source code (without vendor)
+# Copy API source code
 COPY apps/api/ ./api/
+
+# Install Composer and PHP dependencies
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+WORKDIR /usr/share/nginx/html/api
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+WORKDIR /usr/share/nginx/html
 
 # Copy configurations
 COPY docker/nginx-main.conf /etc/nginx/nginx.conf
@@ -90,9 +58,8 @@ COPY docker/php.ini /etc/php82/conf.d/custom.ini
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Create symlinks and directories (using nginx user)
-RUN ln -s /usr/share/nginx/html/api/public /usr/share/nginx/html/public_api && \
-  mkdir -p /var/log/php-fpm /var/log/nginx && \
+# Create necessary directories and set permissions
+RUN mkdir -p /var/log/php-fpm /var/log/nginx && \
   chown -R nginx:nginx /var/log/php-fpm /usr/share/nginx/html/api && \
   chown nginx:nginx /var/log/nginx && \
   chmod -R 755 /usr/share/nginx/html/api/storage /usr/share/nginx/html/api/bootstrap/cache
