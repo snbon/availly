@@ -4,47 +4,38 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
-    # --- Healthcheck over plain HTTP ---
+    # --- HEALTHCHECK (plain HTTP OK) ---
     location = /health {
         access_log off;
         return 200 "healthy\n";
         add_header Content-Type text/plain;
     }
 
-      # Redirect HTTP -> HTTPS for everything else
-    if ($enforce_https) {
-        if ($http_x_forwarded_proto != "https") {
-            return 301 https://$host$request_uri;
-        }
+    # --- Redirect all other HTTP -> HTTPS ---
+    if ($http_x_forwarded_proto != "https") {
+        return 301 https://$host$request_uri;
     }
 
-    # security headers
+    # --- Security headers ---
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     add_header Content-Security-Policy "default-src 'self' https: http: data: blob: 'unsafe-inline'" always;
 
-    # gzip
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_types text/plain text/css text/xml application/javascript application/json image/svg+xml;
-
-    # cache static assets
+    # --- Static assets ---
     location ~* \.(css|js|gif|ico|jpeg|jpg|png|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 
-    # ---------- FRONTEND (SPA) ----------
+    # ---------- FRONTEND ----------
     location / {
         try_files $uri $uri/ /index.html;
     }
 
-    # ---------- BACKEND (Laravel under /api) ----------
+    # ---------- BACKEND ----------
     location /api/ {
-        # CORS (adjust origin if needed)
         add_header Access-Control-Allow-Origin "https://availly.me" always;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
         add_header Access-Control-Allow-Headers "Origin, Content-Type, Accept, Authorization, X-Requested-With" always;
