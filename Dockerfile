@@ -41,9 +41,6 @@ RUN apk add --no-cache \
 RUN docker-php-ext-configure pgsql --with-pgsql=/usr/local/pgsql
 RUN docker-php-ext-install -j$(nproc) pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
 
-# Install Redis extension with proper build dependencies
-RUN pecl install redis && docker-php-ext-enable redis
-
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -56,7 +53,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Final stage for production
 FROM nginx:alpine as final
 
-# Install PHP-FPM and required packages
+# Install PHP-FPM and required packages (no Redis)
 RUN apk add --no-cache \
   php82 \
   php82-fpm \
@@ -69,7 +66,6 @@ RUN apk add --no-cache \
   php82-bcmath \
   php82-gd \
   php82-zip \
-  php82-redis \
   php82-opcache \
   php82-json \
   php82-curl \
