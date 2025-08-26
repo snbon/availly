@@ -63,33 +63,6 @@ class AuthController extends Controller
         try {
             \Log::info('Login attempt', ['email' => $request->email]);
 
-            // Test database connection
-            try {
-                $pdo = \DB::connection()->getPdo();
-                \Log::info('Database connection successful', [
-                    'driver' => \DB::connection()->getDriverName(),
-                    'database' => \DB::connection()->getDatabaseName(),
-                    'host' => \DB::connection()->getConfig('host'),
-                    'port' => \DB::connection()->getConfig('port')
-                ]);
-            } catch (\Exception $dbError) {
-                \Log::error('Database connection failed: ' . $dbError->getMessage(), [
-                    'connection_config' => [
-                        'driver' => config('database.default'),
-                        'host' => config('database.connections.pgsql.host'),
-                        'port' => config('database.connections.pgsql.port'),
-                        'database' => config('database.connections.pgsql.database'),
-                        'username' => config('database.connections.pgsql.username'),
-                        'sslmode' => config('database.connections.pgsql.sslmode')
-                    ],
-                    'trace' => $dbError->getTraceAsString()
-                ]);
-                return response()->json([
-                    'message' => 'Database connection error',
-                    'error' => 'Unable to connect to database: ' . $dbError->getMessage()
-                ], 500);
-            }
-
             $validator = Validator::make($request->all(), [
                 'email' => 'required|string|email',
                 'password' => 'required|string',

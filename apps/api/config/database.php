@@ -99,7 +99,8 @@ return [
             'sslkey' => env('DB_SSLKEY'),
             'sslrootcert' => env('DB_SSLROOTCERT'),
             'options' => extension_loaded('pdo_pgsql') ? array_filter([
-                PDO::PGSQL_ATTR_SSL_MODE => PDO::PGSQL_SSL_MODE_REQUIRE,
+                // Only add SSL mode if the constant is available
+                ...(defined('PDO::PGSQL_ATTR_SSL_MODE') ? [PDO::PGSQL_ATTR_SSL_MODE => PDO::PGSQL_SSL_MODE_REQUIRE] : []),
             ]) : [],
         ],
 

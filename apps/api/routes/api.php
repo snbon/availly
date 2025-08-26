@@ -5,42 +5,20 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 
 Route::get('/health', function() {
-    try {
-        // Test database connection
-        \DB::connection()->getPdo();
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'API is running',
+        'timestamp' => now()->toISOString()
+    ]);
+});
 
-        // Test basic database operations
-        $userCount = \App\Models\User::count();
-
-                // Check if required tables exist (PostgreSQL)
-        $tables = \DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
-        $tableNames = array_map(function($table) {
-            return $table->tablename;
-        }, $tables);
-
-        // Check if users table has required columns (PostgreSQL)
-        $userColumns = \DB::select("SELECT column_name FROM information_schema.columns WHERE table_name = 'users' AND table_schema = 'public'");
-        $columnNames = array_map(function($column) {
-            return $column->column_name;
-        }, $userColumns);
-
-        return response()->json([
-            'status' => 'ok',
-            'database' => 'connected',
-            'user_count' => $userCount,
-            'tables' => $tableNames,
-            'user_columns' => $columnNames,
-            'timestamp' => now()->toISOString()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'database' => 'disconnected',
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-            'timestamp' => now()->toISOString()
-        ], 500);
-    }
+Route::get('/test', function() {
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'Test endpoint working',
+        'php_version' => PHP_VERSION,
+        'laravel_version' => app()->version()
+    ]);
 });
 
 // Debug route to check Google OAuth config (remove in production)
