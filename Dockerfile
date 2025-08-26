@@ -1,7 +1,7 @@
 # Ultra-optimized multi-stage build for Railway memory constraints
 
 # Stage 1: Web app build (minimal)
-FROM node:18-alpine as web-build
+FROM node:18-alpine AS web-build
 WORKDIR /app/web
 COPY apps/web/package*.json ./
 RUN npm ci --only=production --prefer-offline
@@ -9,7 +9,7 @@ COPY apps/web/ ./
 RUN npm run build
 
 # Stage 2: PHP extensions build (minimal dependencies only)
-FROM php:8.2-fpm-alpine as php-extensions
+FROM php:8.2-fpm-alpine AS php-extensions
 RUN apk add --no-cache \
   postgresql-dev \
   libpng-dev \
@@ -19,11 +19,11 @@ RUN apk add --no-cache \
 RUN docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
 
 # Stage 3: Composer dependencies (with memory optimization)
-FROM composer:latest as composer
+FROM composer:2.7 AS composer
 WORKDIR /app
 # Copy only composer files first
 COPY apps/api/composer.json apps/api/composer.lock ./
-# Install with aggressive memory optimization
+# Install with aggressive memory optimization and error handling
 RUN composer install \
   --no-dev \
   --optimize-autoloader \
@@ -32,7 +32,9 @@ RUN composer install \
   --prefer-dist \
   --no-progress \
   --no-ansi \
-  --memory-limit=-1
+  --memory-limit=-1 \
+  --prefer-stable \
+  --sort-packages
 
 # Stage 4: Final production image (ultra-lightweight)
 FROM nginx:alpine
