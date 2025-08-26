@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "availly/api",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Availly - Privacy-first availability sharing platform API",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {

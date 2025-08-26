@@ -1,8 +1,8 @@
-# Production Deployment Guide for Railway
+# Production Deployment Guide — Availly
 
 ## Overview
 
-This guide covers deploying MyFreeSlots to production on Railway with the following domain structure:
+This guide covers deploying Availly to production on Railway with the following domain structure:
 - **Frontend (React)**: `app.availly.me` - The main application dashboard
 - **API (Laravel)**: `api.availly.me` - Backend API
 - **Public Links**: `availly.me/u/{username}` - Public calendar views
@@ -70,7 +70,7 @@ Set these in Railway dashboard for your API service:
 
 ```bash
 # App Configuration
-APP_NAME="MyFreeSlots"
+APP_NAME="Availly"
 APP_ENV=production
 APP_KEY=base64:YOUR_GENERATED_KEY_HERE  # Generate with: php artisan key:generate --show
 APP_DEBUG=false

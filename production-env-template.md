@@ -3,7 +3,7 @@
 ## API Environment Variables (.env for Laravel)
 
 ```bash
-APP_NAME="MyFreeSlots"
+APP_NAME="Availly"
 APP_ENV=production
 APP_KEY=base64:YOUR_GENERATED_KEY_HERE
 APP_DEBUG=false
