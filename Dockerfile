@@ -79,6 +79,12 @@ RUN apk add --no-cache \
   php82-phar \
   gettext
 
+# Copy main nginx configuration
+COPY docker/nginx-main.conf /etc/nginx/nginx.conf
+
+# Copy site-specific nginx configuration
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+
 # Copy web app build artifacts FIRST
 COPY --from=web-build /app/web/dist /usr/share/nginx/html
 
@@ -87,9 +93,6 @@ COPY --from=web-build /app/web/docker/env.template.js /usr/share/nginx/html/env.
 
 # Copy API app build artifacts
 COPY --from=api-build /var/www/html /usr/share/nginx/html/api
-
-# Copy Nginx configuration
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy PHP-FPM configuration
 COPY docker/php-fpm.conf /etc/php82/php-fpm.d/www.conf
@@ -106,6 +109,9 @@ RUN ln -s /usr/share/nginx/html/api/public /usr/share/nginx/html/public_api
 
 # Create log directory for PHP-FPM
 RUN mkdir -p /var/log/php-fpm && chown nginx:nginx /var/log/php-fpm
+
+# Create nginx log directory
+RUN mkdir -p /var/log/nginx && chown nginx:nginx /var/log/nginx
 
 # Expose port 80
 EXPOSE 80
