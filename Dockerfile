@@ -30,13 +30,18 @@ RUN apk add --no-cache \
   zip \
   unzip \
   libzip-dev \
-  postgresql-dev
+  postgresql-dev \
+  autoconf \
+  gcc \
+  g++ \
+  make \
+  linux-headers
 
 # Install PHP extensions with memory optimization
 RUN docker-php-ext-configure pgsql --with-pgsql=/usr/local/pgsql
 RUN docker-php-ext-install -j$(nproc) pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
 
-# Install Redis extension
+# Install Redis extension with proper build dependencies
 RUN pecl install redis && docker-php-ext-enable redis
 
 # Get latest Composer
