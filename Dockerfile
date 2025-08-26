@@ -1,6 +1,7 @@
+# Simple single-stage Dockerfile for Railway (memory optimized)
 FROM nginx:alpine
 
-# Install PHP & Node.js
+# Install PHP, Node.js, Composer, and netcat
 RUN apk add --no-cache \
   php82 php82-fpm php82-pdo php82-pdo_pgsql php82-pgsql \
   php82-mbstring php82-exif php82-pcntl php82-bcmath \
@@ -12,8 +13,10 @@ RUN apk add --no-cache \
 
 RUN ln -sf /usr/bin/php82 /usr/bin/php
 
-# Build frontend
+# Set working directory
 WORKDIR /usr/share/nginx/html
+
+# Build frontend
 COPY apps/web/package*.json ./
 RUN npm ci --prefer-offline
 COPY apps/web/ ./
@@ -27,7 +30,7 @@ WORKDIR /usr/share/nginx/html/api
 RUN php /usr/bin/composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 WORKDIR /usr/share/nginx/html
 
-# Configs
+# Copy configs
 COPY docker/nginx-main.conf /etc/nginx/nginx.conf
 COPY docker/nginx.conf.template /etc/nginx/conf.d/default.conf.template
 COPY docker/php-fpm.conf /etc/php82/php-fpm.d/www.conf
@@ -35,7 +38,7 @@ COPY docker/php.ini /etc/php82/conf.d/custom.ini
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Permissions
+# Fix permissions
 RUN mkdir -p /var/log/php-fpm /var/log/nginx && \
   chown -R nginx:nginx /var/log/php-fpm /usr/share/nginx/html/api && \
   chmod -R 755 /usr/share/nginx/html/api/storage /usr/share/nginx/html/api/bootstrap/cache
