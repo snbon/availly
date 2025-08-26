@@ -40,8 +40,9 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Fix permissions
 RUN mkdir -p /var/log/php-fpm /var/log/nginx && \
-  chown -R nginx:nginx /var/log/php-fpm /usr/share/nginx/html/api && \
-  chmod -R 755 /usr/share/nginx/html/api/storage /usr/share/nginx/html/api/bootstrap/cache
+  chown -R nginx:nginx /usr/share/nginx/html/api && \
+  chmod -R 775 /usr/share/nginx/html/api/storage /usr/share/nginx/html/api/bootstrap/cache
+
 
 EXPOSE 80
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
