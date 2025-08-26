@@ -1,12 +1,12 @@
+# Exclude everything that could cause memory issues
 node_modules
 npm-debug.log
 .git
 .gitignore
 README.md
-.env
-.env.local
-.env.production
-.DS_Store
+DEPLOYMENT.md
+deploy.sh
+env.production.example
 *.log
 coverage
 .nyc_output
@@ -15,3 +15,25 @@ coverage
 *.swp
 *.swo
 *~
+
+# Exclude development files
+.env*
+!.env.example
+tests/
+phpunit.xml
+.phpunit.result.cache
+
+# Exclude build artifacts
+dist/
+build/
+vendor/
+composer.lock
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
+
+# Exclude temporary files
+*.tmp
+*.temp
+*.cache
