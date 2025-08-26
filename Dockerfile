@@ -75,9 +75,9 @@ RUN apk add --no-cache \
   php82-phar \
   gettext
 
-# Create www-data user and group
-RUN addgroup -g 82 -S www-data && \
-  adduser -u 82 -D -S -G www-data www-data
+# Create www-data user and group (Alpine Linux syntax)
+RUN addgroup -g 82 www-data && \
+  adduser -D -s /bin/sh -u 82 -G www-data www-data
 
 # Copy main nginx configuration
 COPY docker/nginx-main.conf /etc/nginx/nginx.conf
