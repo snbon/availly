@@ -4,44 +4,48 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
-    # healthcheck (no redirect)
+    # ---- Healthcheck (no redirect) ----
     location = /health {
         access_log off;
         return 200 "healthy\n";
         add_header Content-Type text/plain;
     }
 
-    # enforce HTTPS for everything else
-    if ($http_x_forwarded_proto != "https") { return 301 https://$host$request_uri; }
-
-    # security headers
+    # ---- Security headers ----
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     add_header Content-Security-Policy "default-src 'self' https: http: data: blob: 'unsafe-inline'" always;
 
-    # static cache
+    # ---- Static cache ----
     location ~* \.(css|js|gif|ico|jpeg|jpg|png|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 
-    # SPA
-    location / { try_files $uri $uri/ /index.html; }
+    # ---------- FRONTEND ----------
+    location / {
+        if ($http_x_forwarded_proto != "https") { return 301 https://$host$request_uri; }
+        try_files $uri $uri/ /index.html;
+    }
 
-    # API
+    # ---------- BACKEND ----------
     location /api/ {
+        if ($http_x_forwarded_proto != "https") { return 301 https://$host$request_uri; }
+
         add_header Access-Control-Allow-Origin "https://availly.me" always;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
         add_header Access-Control-Allow-Headers "Origin, Content-Type, Accept, Authorization, X-Requested-With" always;
         add_header Access-Control-Allow-Credentials "true" always;
+
         if ($request_method = OPTIONS) {
             add_header Access-Control-Max-Age 1728000 always;
             add_header Content-Type "text/plain; charset=utf-8";
             add_header Content-Length 0;
             return 204;
         }
+
         try_files $uri $uri/ @php_api;
     }
 
