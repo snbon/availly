@@ -62,14 +62,17 @@ server {
     location ~ \.php$ { return 404; }
 
     # PHP-FPM upstream
-    location @php_api {
-        fastcgi_pass 127.0.0.1:9000;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME /usr/share/nginx/html/api/public/index.php;
-        include fastcgi_params;
-        fastcgi_hide_header X-Powered-By;
-        fastcgi_param HTTP_AUTHORIZATION $http_authorization;
-    }
+location @php_api {
+    fastcgi_pass 127.0.0.1:9000;
+    include fastcgi_params;
+
+    fastcgi_param SCRIPT_FILENAME /usr/share/nginx/html/api/public/index.php;
+    fastcgi_param PATH_INFO       $fastcgi_path_info;
+    fastcgi_param REQUEST_METHOD  $request_method;
+    fastcgi_param REQUEST_URI     $request_uri;
+    fastcgi_param QUERY_STRING    $query_string;
+    fastcgi_param HTTP_AUTHORIZATION $http_authorization;
+}
 
     # deny sensitive files
     location ~ /\.(env|git) { deny all; }
