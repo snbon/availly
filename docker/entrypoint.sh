@@ -2,21 +2,18 @@
 set -e
 
 echo "Starting deployment..."
-
-# Default PORT if not set
 PORT="${PORT:-8080}"
+echo "Using PORT=$PORT"
 
-# Render nginx config
+# render nginx
 sed "s/PORT_REPLACE/${PORT}/g" /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+echo "Rendered /etc/nginx/conf.d/default.conf:"
+sed -n '1,120p' /etc/nginx/conf.d/default.conf
 
-# Inject frontend env if exists
-if [ -f /usr/share/nginx/html/env.template.js ]; then
-  envsubst < /usr/share/nginx/html/env.template.js > /usr/share/nginx/html/env.js
-fi
-
-# Start PHP-FPM
+# start PHP-FPM
 php-fpm82 -D
-sleep 2
+sleep 1
 
-# Start Nginx
+# validate nginx, then start
+nginx -t
 exec "$@"

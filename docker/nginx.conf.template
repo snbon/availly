@@ -1,57 +1,50 @@
 server {
-    listen PORT_REPLACE;
+    listen 0.0.0.0:PORT_REPLACE;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
 
-    # --- HEALTHCHECK (plain HTTP OK) ---
+    # healthcheck (no redirect)
     location = /health {
         access_log off;
         return 200 "healthy\n";
         add_header Content-Type text/plain;
     }
 
-    # --- Redirect all other HTTP -> HTTPS ---
-    if ($http_x_forwarded_proto != "https") {
-        return 301 https://$host$request_uri;
-    }
+    # enforce HTTPS for everything else
+    if ($http_x_forwarded_proto != "https") { return 301 https://$host$request_uri; }
 
-    # --- Security headers ---
+    # security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     add_header Content-Security-Policy "default-src 'self' https: http: data: blob: 'unsafe-inline'" always;
 
-    # --- Static assets ---
+    # static cache
     location ~* \.(css|js|gif|ico|jpeg|jpg|png|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 
-    # ---------- FRONTEND ----------
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
+    # SPA
+    location / { try_files $uri $uri/ /index.html; }
 
-    # ---------- BACKEND ----------
+    # API
     location /api/ {
         add_header Access-Control-Allow-Origin "https://availly.me" always;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
         add_header Access-Control-Allow-Headers "Origin, Content-Type, Accept, Authorization, X-Requested-With" always;
         add_header Access-Control-Allow-Credentials "true" always;
-
         if ($request_method = OPTIONS) {
             add_header Access-Control-Max-Age 1728000 always;
             add_header Content-Type "text/plain; charset=utf-8";
             add_header Content-Length 0;
             return 204;
         }
-
         try_files $uri $uri/ @php_api;
     }
 
-    # never execute PHP from web root
     location ~ \.php$ { return 404; }
 
     location @php_api {
@@ -63,6 +56,5 @@ server {
         fastcgi_param HTTP_AUTHORIZATION $http_authorization;
     }
 
-    # deny sensitive files
     location ~ /\.(env|git) { deny all; }
 }
