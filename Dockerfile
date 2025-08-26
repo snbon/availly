@@ -56,8 +56,28 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Final stage for production
 FROM nginx:alpine as final
 
-# Install envsubst for environment variable substitution
-RUN apk add --no-cache gettext
+# Install PHP-FPM and required packages
+RUN apk add --no-cache \
+  php82 \
+  php82-fpm \
+  php82-pdo \
+  php82-pdo_pgsql \
+  php82-pgsql \
+  php82-mbstring \
+  php82-exif \
+  php82-pcntl \
+  php82-bcmath \
+  php82-gd \
+  php82-zip \
+  php82-redis \
+  php82-opcache \
+  php82-json \
+  php82-curl \
+  php82-xml \
+  php82-tokenizer \
+  php82-fileinfo \
+  php82-phar \
+  gettext
 
 # Copy web app build artifacts FIRST
 COPY --from=web-build /app/web/dist /usr/share/nginx/html
