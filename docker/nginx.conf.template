@@ -48,13 +48,8 @@ server {
             return 204;
         }
 
-        # For POST/PUT/DELETE requests, go directly to PHP
-        if ($request_method ~ ^(POST|PUT|PATCH|DELETE)$) {
-            try_files @php_api;
-        }
-
-        # For GET requests, try static files first, then PHP
-        try_files $uri $uri/ @php_api;
+        # Always try PHP first for API requests, then fall back to static files
+        try_files @php_api $uri $uri/;
     }
 
     # PHP-FPM handler for Laravel

@@ -26,17 +26,26 @@
 - **Problem**: POST requests to API endpoints were getting 405 errors due to nginx configuration
 - **Solution**: Fixed nginx configuration to properly handle POST/PUT/DELETE requests and route them directly to PHP-FPM
 
+### 7. Nginx Configuration Syntax Error
+- **Problem**: Invalid `try_files` directive inside `if` block causing nginx to fail
+- **Solution**: Restructured nginx configuration to avoid invalid directive combinations
+
+### 8. Database Connection Failures
+- **Problem**: Database connection failures were causing deployment to fail
+- **Solution**: Made database connection failures non-fatal and added comprehensive database testing tools
+
 ## Files Modified
 
-- `docker/entrypoint.sh` - Fixed nginx startup and added better error handling
-- `docker/nginx.conf.template` - Added error logging, FastCGI timeouts, and fixed POST request handling
+- `docker/entrypoint.sh` - Fixed nginx startup, added configuration validation, and improved error handling
+- `docker/nginx.conf.template` - Added error logging, FastCGI timeouts, fixed POST request handling, and removed invalid syntax
 - `docker/nginx-main.conf` - Added basic nginx settings
-- `Dockerfile` - Added Laravel public directory fallback and better permissions
+- `Dockerfile` - Added Laravel public directory fallback, better permissions, and netcat for debugging
 - `docker/debug.sh` - Created debug script for troubleshooting
 - `docker/test-deployment.sh` - Created test script for local validation
 - `docker/test-api-endpoints.sh` - Created comprehensive API endpoint testing script
 - `docker/debug-laravel.sh` - Created Laravel-specific debugging script
 - `docker/fix-405-error.sh` - Created script to specifically fix the 405 error
+- `docker/test-database.sh` - Created comprehensive database connectivity testing script
 
 ## How to Deploy
 
@@ -87,15 +96,28 @@ curl -X POST http://localhost:8080/api/auth/login \
 2. Check Laravel routes: `docker exec <container_id> cd /usr/share/nginx/html/api && php artisan route:list --path=api`
 3. Clear Laravel caches: `docker exec <container_id> cd /usr/share/nginx/html/api && php artisan route:clear`
 
+### If database connection fails:
+1. Run the database test script: `docker exec <container_id> /usr/local/bin/test-database.sh`
+2. Check environment variables: `docker exec <container_id> env | grep DB_`
+3. Verify database server is accessible from the container
+4. Check if database requires SSL connections
+
 ### Common Issues:
 - **Port binding**: Ensure the PORT environment variable is set correctly
 - **File permissions**: All directories should be owned by `nginx:nginx`
 - **Laravel installation**: The API directory should contain a complete Laravel installation
 - **Route caching**: Laravel route cache might need to be cleared after deployment
+- **Database connectivity**: Ensure database server is accessible and credentials are correct
 
 ## Environment Variables
 
 - `PORT`: The port nginx should listen on (default: 8080)
+- `DB_CONNECTION`: Database connection type (pgsql, mysql, sqlite)
+- `DB_HOST`: Database server hostname
+- `DB_PORT`: Database server port
+- `DB_DATABASE`: Database name
+- `DB_USERNAME`: Database username
+- `DB_PASSWORD`: Database password
 - Any other environment variables will be available to your Laravel application
 
 ## Health Checks
@@ -125,4 +147,10 @@ The application includes a health check endpoint at `/health` that returns a sim
 ```bash
 # Run inside the container
 /usr/local/bin/debug-laravel.sh
+```
+
+### Test Database Connectivity
+```bash
+# Run inside the container
+/usr/local/bin/test-database.sh
 ```
