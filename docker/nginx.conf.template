@@ -50,8 +50,8 @@ server {
             return 204;
         }
 
-        # For API requests, always go to PHP-FPM
-        try_files @php_api;
+        # For API requests, first check for existing files then fallback to PHP-FPM
+        try_files $uri $uri/ @php_api;
     }
 
     # PHP-FPM handler for Laravel - robust configuration
