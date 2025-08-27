@@ -36,18 +36,22 @@
 
 ### 9. 500 Internal Server Error with Redirect Loop
 - **Problem**: Nginx was creating infinite redirect loops to `/api/auth/login///////////`
-- **Solution**: Simplified the API location block to prevent redirect loops by using only `try_files @php_api`
+- **Solution**: Simplified the nginx configuration to prevent redirect loops by using only `try_files @php_api`
 
 ### 10. PostgreSQL SSL Connection Issues
 - **Problem**: Database requires SSL (`DB_SSLMODE=require`) but connection was failing
 - **Solution**: Added PostgreSQL client tools and SSL-specific testing scripts for better debugging
 
+### 11. Health Check Failures
+- **Problem**: Railway health check was failing due to nginx configuration issues and missing health check testing
+- **Solution**: Enhanced health check configuration with better headers, added health check testing in entrypoint script, and included curl for testing
+
 ## Files Modified
 
-- `docker/entrypoint.sh` - Fixed nginx startup, added configuration validation, and improved error handling
-- `docker/nginx.conf.template` - Added error logging, FastCGI timeouts, fixed POST request handling, removed invalid syntax, and prevented redirect loops
+- `docker/entrypoint.sh` - Fixed nginx startup, added configuration validation, improved error handling, and added health check testing
+- `docker/nginx.conf.template` - Added error logging, FastCGI timeouts, fixed POST request handling, removed invalid syntax, prevented redirect loops, and enhanced health check configuration
 - `docker/nginx-main.conf` - Added basic nginx settings
-- `Dockerfile` - Added Laravel public directory fallback, better permissions, netcat for debugging, and PostgreSQL client tools
+- `Dockerfile` - Added Laravel public directory fallback, better permissions, netcat for debugging, PostgreSQL client tools, and curl for health check testing
 - `docker/debug.sh` - Created debug script for troubleshooting
 - `docker/test-deployment.sh` - Created test script for local validation
 - `docker/test-api-endpoints.sh` - Created comprehensive API endpoint testing script
@@ -55,6 +59,7 @@
 - `docker/fix-405-error.sh` - Created script to specifically fix the 405 error
 - `docker/test-database.sh` - Created comprehensive database connectivity testing script
 - `docker/test-database-ssl.sh` - Created PostgreSQL SSL-specific testing script
+- `docker/test-health-check.sh` - Created script to test health check configuration locally
 
 ## How to Deploy
 
@@ -110,6 +115,12 @@ curl -X POST http://localhost:8080/api/auth/login \
 2. Verify the nginx configuration is correct: `docker exec <container_id> nginx -t`
 3. Check if the API location block is properly configured
 
+### If health check fails:
+1. Test health check locally: `./docker/test-health-check.sh`
+2. Check nginx configuration syntax: `docker exec <container_id> nginx -t`
+3. Verify health check endpoint: `docker exec <container_id> curl -f http://localhost:8080/health`
+4. Check nginx logs for health check errors
+
 ### If database connection fails:
 1. Run the database test script: `docker exec <container_id> /usr/local/bin/test-database.sh`
 2. Run the SSL-specific test: `docker exec <container_id> /usr/local/bin/test-database-ssl.sh`
@@ -125,6 +136,7 @@ curl -X POST http://localhost:8080/api/auth/login \
 - **Database connectivity**: Ensure database server is accessible and credentials are correct
 - **SSL requirements**: PostgreSQL with `DB_SSLMODE=require` needs proper SSL configuration
 - **Network access**: Railway containers might have IP restrictions that need to be whitelisted
+- **Health check configuration**: Ensure health check endpoint is properly configured and accessible
 
 ## Environment Variables
 
@@ -140,13 +152,23 @@ curl -X POST http://localhost:8080/api/auth/login \
 
 ## Health Checks
 
-The application includes a health check endpoint at `/health` that returns a simple "healthy" response. This is useful for load balancers and monitoring systems.
+The application includes a robust health check endpoint at `/health` that:
+- Returns a simple "healthy" response
+- Includes proper cache control headers
+- Is tested during deployment to ensure it works
+- Matches Railway's `healthcheckPath: "/health"` configuration
+- Is useful for load balancers and monitoring systems
 
 ## Testing Scripts
 
 ### Test Deployment Configuration
 ```bash
 ./docker/test-deployment.sh
+```
+
+### Test Health Check Configuration
+```bash
+./docker/test-health-check.sh
 ```
 
 ### Test API Endpoints

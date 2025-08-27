@@ -35,6 +35,23 @@ if ! nginx -t; then
 fi
 echo "✅ Nginx configuration is valid"
 
+# Start nginx in background to test health check
+echo "Starting nginx in background for health check test..."
+nginx -g "daemon on;"
+sleep 2
+
+# Test health check endpoint
+echo "Testing health check endpoint..."
+if curl -f -s "http://localhost:${PORT}/health" > /dev/null; then
+    echo "✅ Health check endpoint is working"
+else
+    echo "❌ Health check endpoint failed"
+    echo "Nginx error log:"
+    tail -10 /var/log/nginx/error.log || echo "No error log found"
+    echo "Nginx access log:"
+    tail -10 /var/log/nginx/access.log || echo "No access log found"
+fi
+
 # Try to run Laravel migrations (but don't fail if database is not available)
 echo "Running Laravel migrations..."
 cd /usr/share/nginx/html/api
@@ -45,6 +62,10 @@ else
     echo "This is normal if the database is not yet available"
 fi
 
-# Start nginx
-echo "Starting nginx..."
+# Stop background nginx and start in foreground
+echo "Stopping background nginx and starting in foreground..."
+nginx -s quit || true
+sleep 1
+
+echo "Starting nginx in foreground..."
 exec nginx -g "daemon off;"

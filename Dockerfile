@@ -9,7 +9,7 @@ RUN apk add --no-cache \
   php82-curl php82-xml php82-tokenizer php82-fileinfo \
   php82-phar php82-openssl php82-session php82-dom \
   php82-iconv php82-simplexml php82-xmlreader php82-xmlwriter \
-  php82-intl php82-ctype gettext nodejs npm netcat-openbsd postgresql-client
+  php82-intl php82-ctype gettext nodejs npm netcat-openbsd postgresql-client curl
 
 # Symlink php82 -> php
 RUN ln -sf /usr/bin/php82 /usr/bin/php

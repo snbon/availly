@@ -8,11 +8,15 @@ server {
     error_log /var/log/nginx/error.log debug;
     access_log /var/log/nginx/access.log;
 
-    # Healthcheck
+    # Healthcheck - More robust version
     location = /health {
         access_log off;
-        return 200 "healthy\n";
+        error_log off;
         add_header Content-Type text/plain;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
+        return 200 "healthy\n";
     }
 
     # Security headers
