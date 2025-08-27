@@ -4,6 +4,10 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # Error logging
+    error_log /var/log/nginx/error.log debug;
+    access_log /var/log/nginx/access.log;
+
     # Healthcheck
     location = /health {
         access_log off;
@@ -54,6 +58,12 @@ server {
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
         fastcgi_param HTTP_AUTHORIZATION $http_authorization;
+        
+        # FastCGI error handling
+        fastcgi_intercept_errors on;
+        fastcgi_read_timeout 300;
+        fastcgi_connect_timeout 60;
+        fastcgi_send_timeout 300;
     }
 
     # Block direct PHP execution & sensitive files

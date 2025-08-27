@@ -42,6 +42,15 @@ RUN mkdir -p \
   chown -R nginx:nginx /usr/share/nginx/html/api && \
   chmod -R 775 storage bootstrap/cache
 
+# Ensure Laravel public directory exists and has proper permissions
+RUN if [ ! -d "public" ]; then \
+  echo "Creating Laravel public directory..."; \
+  mkdir -p public; \
+  echo "<?php echo 'Laravel not properly installed'; ?>" > public/index.php; \
+  fi && \
+  chown -R nginx:nginx public && \
+  chmod -R 755 public
+
 # ---------- Nginx & PHP-FPM Config ----------
 WORKDIR /usr/share/nginx/html
 COPY docker/nginx-main.conf /etc/nginx/nginx.conf
@@ -53,7 +62,12 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # ---------- Logs & Permissions ----------
 RUN mkdir -p /var/log/php-fpm /var/log/nginx && \
-  chown -R nginx:nginx /var/log/php-fpm /var/log/nginx
+  chown -R nginx:nginx /var/log/php-fpm /var/log/nginx && \
+  chmod -R 755 /var/log/php-fpm /var/log/nginx
+
+# Ensure nginx can write to its directories
+RUN mkdir -p /var/cache/nginx /var/run && \
+  chown -R nginx:nginx /var/cache/nginx /var/run
 
 EXPOSE 80
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
