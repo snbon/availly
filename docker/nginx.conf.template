@@ -33,13 +33,14 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    # API (Laravel)
+    # API (Laravel) - Handle all API requests
     location /api/ {
         add_header Access-Control-Allow-Origin "https://availly.me" always;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
         add_header Access-Control-Allow-Headers "Origin, Content-Type, Accept, Authorization, X-Requested-With" always;
         add_header Access-Control-Allow-Credentials "true" always;
 
+        # Handle OPTIONS preflight requests
         if ($request_method = OPTIONS) {
             add_header Access-Control-Max-Age 1728000 always;
             add_header Content-Type "text/plain; charset=utf-8";
@@ -47,6 +48,12 @@ server {
             return 204;
         }
 
+        # For POST/PUT/DELETE requests, go directly to PHP
+        if ($request_method ~ ^(POST|PUT|PATCH|DELETE)$) {
+            try_files @php_api;
+        }
+
+        # For GET requests, try static files first, then PHP
         try_files $uri $uri/ @php_api;
     }
 
@@ -64,6 +71,11 @@ server {
         fastcgi_read_timeout 300;
         fastcgi_connect_timeout 60;
         fastcgi_send_timeout 300;
+        
+        # Ensure proper request handling
+        fastcgi_param REQUEST_METHOD $request_method;
+        fastcgi_param CONTENT_TYPE $content_type;
+        fastcgi_param CONTENT_LENGTH $content_length;
     }
 
     # Block direct PHP execution & sensitive files

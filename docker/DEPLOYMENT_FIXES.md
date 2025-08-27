@@ -22,14 +22,21 @@
 - **Problem**: Nginx and PHP-FPM processes needed proper permissions
 - **Solution**: Added proper ownership and permissions for all required directories
 
+### 6. 405 Method Not Allowed Error on /api/auth/login
+- **Problem**: POST requests to API endpoints were getting 405 errors due to nginx configuration
+- **Solution**: Fixed nginx configuration to properly handle POST/PUT/DELETE requests and route them directly to PHP-FPM
+
 ## Files Modified
 
 - `docker/entrypoint.sh` - Fixed nginx startup and added better error handling
-- `docker/nginx.conf.template` - Added error logging and FastCGI timeouts
+- `docker/nginx.conf.template` - Added error logging, FastCGI timeouts, and fixed POST request handling
 - `docker/nginx-main.conf` - Added basic nginx settings
 - `Dockerfile` - Added Laravel public directory fallback and better permissions
 - `docker/debug.sh` - Created debug script for troubleshooting
 - `docker/test-deployment.sh` - Created test script for local validation
+- `docker/test-api-endpoints.sh` - Created comprehensive API endpoint testing script
+- `docker/debug-laravel.sh` - Created Laravel-specific debugging script
+- `docker/fix-405-error.sh` - Created script to specifically fix the 405 error
 
 ## How to Deploy
 
@@ -57,6 +64,11 @@ curl http://localhost:8080/
 
 # Test the API
 curl http://localhost:8080/api/
+
+# Test the login endpoint specifically
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
 ```
 
 ## Troubleshooting
@@ -70,10 +82,16 @@ curl http://localhost:8080/api/
 1. Check PHP-FPM logs: `docker exec <container_id> tail -f /var/log/php-fpm/www-error.log`
 2. Verify PHP-FPM is running: `docker exec <container_id> ps aux | grep php-fpm`
 
+### If you get 405 errors on API endpoints:
+1. Run the 405 fix script: `docker exec <container_id> /usr/local/bin/fix-405-error.sh`
+2. Check Laravel routes: `docker exec <container_id> cd /usr/share/nginx/html/api && php artisan route:list --path=api`
+3. Clear Laravel caches: `docker exec <container_id> cd /usr/share/nginx/html/api && php artisan route:clear`
+
 ### Common Issues:
 - **Port binding**: Ensure the PORT environment variable is set correctly
 - **File permissions**: All directories should be owned by `nginx:nginx`
 - **Laravel installation**: The API directory should contain a complete Laravel installation
+- **Route caching**: Laravel route cache might need to be cleared after deployment
 
 ## Environment Variables
 
@@ -83,3 +101,28 @@ curl http://localhost:8080/api/
 ## Health Checks
 
 The application includes a health check endpoint at `/health` that returns a simple "healthy" response. This is useful for load balancers and monitoring systems.
+
+## Testing Scripts
+
+### Test Deployment Configuration
+```bash
+./docker/test-deployment.sh
+```
+
+### Test API Endpoints
+```bash
+./docker/test-api-endpoints.sh [base_url]
+# Example: ./docker/test-api-endpoints.sh https://availly.me
+```
+
+### Fix 405 Errors
+```bash
+# Run inside the container
+/usr/local/bin/fix-405-error.sh
+```
+
+### Debug Laravel Issues
+```bash
+# Run inside the container
+/usr/local/bin/debug-laravel.sh
+```
