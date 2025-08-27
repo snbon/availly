@@ -34,18 +34,27 @@
 - **Problem**: Database connection failures were causing deployment to fail
 - **Solution**: Made database connection failures non-fatal and added comprehensive database testing tools
 
+### 9. 500 Internal Server Error with Redirect Loop
+- **Problem**: Nginx was creating infinite redirect loops to `/api/auth/login///////////`
+- **Solution**: Simplified the API location block to prevent redirect loops by using only `try_files @php_api`
+
+### 10. PostgreSQL SSL Connection Issues
+- **Problem**: Database requires SSL (`DB_SSLMODE=require`) but connection was failing
+- **Solution**: Added PostgreSQL client tools and SSL-specific testing scripts for better debugging
+
 ## Files Modified
 
 - `docker/entrypoint.sh` - Fixed nginx startup, added configuration validation, and improved error handling
-- `docker/nginx.conf.template` - Added error logging, FastCGI timeouts, fixed POST request handling, and removed invalid syntax
+- `docker/nginx.conf.template` - Added error logging, FastCGI timeouts, fixed POST request handling, removed invalid syntax, and prevented redirect loops
 - `docker/nginx-main.conf` - Added basic nginx settings
-- `Dockerfile` - Added Laravel public directory fallback, better permissions, and netcat for debugging
+- `Dockerfile` - Added Laravel public directory fallback, better permissions, netcat for debugging, and PostgreSQL client tools
 - `docker/debug.sh` - Created debug script for troubleshooting
 - `docker/test-deployment.sh` - Created test script for local validation
 - `docker/test-api-endpoints.sh` - Created comprehensive API endpoint testing script
 - `docker/debug-laravel.sh` - Created Laravel-specific debugging script
 - `docker/fix-405-error.sh` - Created script to specifically fix the 405 error
 - `docker/test-database.sh` - Created comprehensive database connectivity testing script
+- `docker/test-database-ssl.sh` - Created PostgreSQL SSL-specific testing script
 
 ## How to Deploy
 
@@ -96,11 +105,17 @@ curl -X POST http://localhost:8080/api/auth/login \
 2. Check Laravel routes: `docker exec <container_id> cd /usr/share/nginx/html/api && php artisan route:list --path=api`
 3. Clear Laravel caches: `docker exec <container_id> cd /usr/share/nginx/html/api && php artisan route:clear`
 
+### If you get 500 errors with redirect loops:
+1. Check nginx error logs: `docker exec <container_id> tail -f /var/log/nginx/error.log`
+2. Verify the nginx configuration is correct: `docker exec <container_id> nginx -t`
+3. Check if the API location block is properly configured
+
 ### If database connection fails:
 1. Run the database test script: `docker exec <container_id> /usr/local/bin/test-database.sh`
-2. Check environment variables: `docker exec <container_id> env | grep DB_`
-3. Verify database server is accessible from the container
-4. Check if database requires SSL connections
+2. Run the SSL-specific test: `docker exec <container_id> /usr/local/bin/test-database-ssl.sh`
+3. Check environment variables: `docker exec <container_id> env | grep DB_`
+4. Verify database server is accessible from the container
+5. Check if database requires SSL connections and if Railway IP is whitelisted
 
 ### Common Issues:
 - **Port binding**: Ensure the PORT environment variable is set correctly
@@ -108,6 +123,8 @@ curl -X POST http://localhost:8080/api/auth/login \
 - **Laravel installation**: The API directory should contain a complete Laravel installation
 - **Route caching**: Laravel route cache might need to be cleared after deployment
 - **Database connectivity**: Ensure database server is accessible and credentials are correct
+- **SSL requirements**: PostgreSQL with `DB_SSLMODE=require` needs proper SSL configuration
+- **Network access**: Railway containers might have IP restrictions that need to be whitelisted
 
 ## Environment Variables
 
@@ -118,6 +135,7 @@ curl -X POST http://localhost:8080/api/auth/login \
 - `DB_DATABASE`: Database name
 - `DB_USERNAME`: Database username
 - `DB_PASSWORD`: Database password
+- `DB_SSLMODE`: SSL mode for PostgreSQL (require, prefer, allow, disable)
 - Any other environment variables will be available to your Laravel application
 
 ## Health Checks
@@ -153,4 +171,10 @@ The application includes a health check endpoint at `/health` that returns a sim
 ```bash
 # Run inside the container
 /usr/local/bin/test-database.sh
+```
+
+### Test PostgreSQL SSL Connection
+```bash
+# Run inside the container
+/usr/local/bin/test-database-ssl.sh
 ```

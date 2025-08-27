@@ -33,7 +33,7 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    # API (Laravel) - Handle all API requests
+    # API (Laravel) - Simplified to prevent redirect loops
     location /api/ {
         add_header Access-Control-Allow-Origin "https://availly.me" always;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
@@ -48,8 +48,8 @@ server {
             return 204;
         }
 
-        # Always try PHP first for API requests, then fall back to static files
-        try_files @php_api $uri $uri/;
+        # For API requests, always go to PHP-FPM
+        try_files @php_api;
     }
 
     # PHP-FPM handler for Laravel
