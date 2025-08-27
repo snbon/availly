@@ -80,25 +80,21 @@ HEALTH_CHECK_RETRIES=5
 HEALTH_CHECK_DELAY=2
 
 for i in $(seq 1 $HEALTH_CHECK_RETRIES); do
-    echo "Health check attempt $i/$HEALTH_CHECK_RETRIES..."
-    
     if curl -f -s "http://localhost:${PORT}/health" > /dev/null; then
         echo "✅ Health check endpoint is working!"
         break
+    elif [ $i -eq $HEALTH_CHECK_RETRIES ]; then
+        echo "❌ Health check failed after $HEALTH_CHECK_RETRIES attempts"
+        echo "Nginx error log:"
+        tail -10 /var/log/nginx/error.log 2>/dev/null || echo "No error log found"
+        echo "Nginx access log:"
+        tail -10 /var/log/nginx/access.log 2>/dev/null || echo "No access log found"
+        echo "Stopping nginx and exiting..."
+        nginx -s quit || true
+        exit 1
     else
-        if [ $i -eq $HEALTH_CHECK_RETRIES ]; then
-            echo "❌ Health check failed after $HEALTH_CHECK_RETRIES attempts"
-            echo "Nginx error log:"
-            tail -10 /var/log/nginx/error.log 2>/dev/null || echo "No error log found"
-            echo "Nginx access log:"
-            tail -10 /var/log/nginx/access.log 2>/dev/null || echo "No access log found"
-            echo "Stopping nginx and exiting..."
-            nginx -s quit || true
-            exit 1
-        else
-            echo "⚠️ Health check attempt $i failed, retrying in ${HEALTH_CHECK_DELAY}s..."
-            sleep $HEALTH_CHECK_DELAY
-        fi
+        sleep_time=$((HEALTH_CHECK_DELAY * i))
+        sleep $sleep_time
     fi
 done
 
