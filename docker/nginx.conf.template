@@ -58,7 +58,7 @@ server {
     location @php_api {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME /usr/share/nginx/html/api/public/index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root/api/public/index.php;
         
         # Include standard FastCGI parameters
         include fastcgi_params;
