@@ -53,7 +53,7 @@ server {
     location @php_api {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME /usr/share/nginx/html/api/public/index.php;
+        fastcgi_param SCRIPT_FILENAME /var/www/html/public/index.php;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
         fastcgi_param HTTP_AUTHORIZATION $http_authorization;
