@@ -55,7 +55,12 @@ RUN if [ ! -d "public" ]; then \
 WORKDIR /usr/share/nginx/html
 COPY docker/nginx-main.conf /etc/nginx/nginx.conf
 COPY docker/nginx.conf.template /etc/nginx/conf.d/default.conf.template
+# Remove default PHP-FPM config and use our custom one
+RUN rm -f /etc/php82/php-fpm.d/www.conf
 COPY docker/php-fpm.conf /etc/php82/php-fpm.d/www.conf
+
+# Copy main PHP-FPM configuration
+COPY docker/php-fpm-main.conf /etc/php82/php-fpm.conf
 COPY docker/php.ini /etc/php82/conf.d/custom.ini
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh

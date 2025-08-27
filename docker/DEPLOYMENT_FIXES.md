@@ -59,7 +59,8 @@
 - `docker/entrypoint.sh` - Added comprehensive PHP-FPM error handling and startup validation
 - `docker/nginx.conf.template` - Production-ready configuration with simplified but effective security headers, proper API routing, and reliable health check
 - `docker/nginx-main.conf` - Enhanced with proper event handling, security headers, and optimized settings
-- `docker/php-fpm.conf` - Added security settings, error handling, and session configuration
+- `docker/php-fpm.conf` - Simplified configuration to use only essential, compatible settings and removed problematic directives
+- `docker/php-fpm-main.conf` - Created main PHP-FPM configuration file for proper Alpine Linux structure
 - `Dockerfile` - Added PHP-FPM log directory creation, configuration testing, and proper permissions
 - `docker/debug.sh` - Created debug script for troubleshooting
 - `docker/test-deployment.sh` - Created test script for local validation
