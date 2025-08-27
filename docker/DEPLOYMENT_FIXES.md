@@ -82,8 +82,8 @@ The deployment was failing at the PHP-FPM startup step because:
 
 ### **PHP-FPM Configuration:**
 - Added proper log directory creation in Dockerfile
-- Enhanced PHP-FPM configuration with security settings
-- Added configuration validation during build
+- Simplified configuration to use only essential, compatible settings
+- Removed problematic directives that caused syntax errors
 - Fixed permission issues for log directories
 
 ### **Entrypoint Script:**
@@ -101,9 +101,9 @@ The deployment was failing at the PHP-FPM startup step because:
 
 ### **Dockerfile:**
 - Added PHP-FPM log directory creation
-- Added PHP-FPM configuration testing
 - Fixed permission issues
 - Added proper directory ownership
+- Removed problematic PHP-FPM configuration testing
 
 ## How to Deploy
 

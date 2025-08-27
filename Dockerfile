@@ -74,9 +74,6 @@ RUN mkdir -p /var/log/php-fpm && \
   chown -R nginx:nginx /var/log/php-fpm && \
   chmod -R 755 /var/log/php-fpm
 
-# Test PHP-FPM configuration
-RUN php-fpm82 -t
-
 EXPOSE 80
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
