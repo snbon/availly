@@ -25,11 +25,28 @@ if [ ! -d "/usr/share/nginx/html/api/public" ]; then
   echo "✅ Laravel public directory created"
 fi
 
-# Step 4: Start PHP-FPM
+# Step 4: Start PHP-FPM with error handling
 echo "🐘 Starting PHP-FPM..."
-php-fpm82 -D
-sleep 3  # Give PHP-FPM time to start
-echo "✅ PHP-FPM started"
+if php-fpm82 -D; then
+    echo "✅ PHP-FPM started successfully"
+else
+    echo "❌ PHP-FPM failed to start"
+    echo "Checking PHP-FPM configuration..."
+    php-fpm82 -t || echo "PHP-FPM configuration test failed"
+    echo "Checking if port 9000 is available..."
+    netstat -tlnp | grep :9000 || echo "Port 9000 is not in use"
+    echo "Checking PHP-FPM logs..."
+    if [ -f "/var/log/php-fpm/www-error.log" ]; then
+        tail -10 /var/log/php-fpm/www-error.log
+    else
+        echo "No PHP-FPM error log found"
+    fi
+    exit 1
+fi
+
+# Wait for PHP-FPM to be ready
+sleep 3
+echo "✅ PHP-FPM is ready"
 
 # Step 5: Validate nginx configuration
 echo "🔍 Validating nginx configuration..."

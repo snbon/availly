@@ -69,6 +69,14 @@ RUN mkdir -p /var/log/php-fpm /var/log/nginx && \
 RUN mkdir -p /var/cache/nginx /var/run && \
   chown -R nginx:nginx /var/cache/nginx /var/run
 
+# Create PHP-FPM log directory
+RUN mkdir -p /var/log/php-fpm && \
+  chown -R nginx:nginx /var/log/php-fpm && \
+  chmod -R 755 /var/log/php-fpm
+
+# Test PHP-FPM configuration
+RUN php-fpm82 -t
+
 EXPOSE 80
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

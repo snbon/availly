@@ -46,60 +46,73 @@
 - **Problem**: Railway health check was failing due to nginx configuration issues and missing health check testing
 - **Solution**: Enhanced health check configuration with better headers, added health check testing in entrypoint script, and included curl for testing
 
-### 12. Production Deployment Reliability
-- **Problem**: Complex nginx configuration and entrypoint script causing deployment failures
-- **Solution**: Created production-ready, simplified nginx configuration with robust entrypoint script and comprehensive testing
+### 12. PHP-FPM Startup Failures
+- **Problem**: PHP-FPM was failing to start, causing deployment to hang at "Starting PHP-FPM..."
+- **Solution**: Added comprehensive error handling for PHP-FPM startup, configuration testing, and proper log directory creation
+
+### 13. Nginx Main Configuration Issues
+- **Problem**: Main nginx configuration was missing proper event handling and security headers
+- **Solution**: Enhanced main nginx configuration with proper event handling, security headers, and optimized settings
 
 ## Files Modified
 
-- `docker/entrypoint.sh` - Complete rewrite with robust deployment process, health check validation, and comprehensive error handling
+- `docker/entrypoint.sh` - Added comprehensive PHP-FPM error handling and startup validation
 - `docker/nginx.conf.template` - Production-ready configuration with simplified but effective security headers, proper API routing, and reliable health check
-- `docker/nginx-main.conf` - Added basic nginx settings
-- `Dockerfile` - Added Laravel public directory fallback, better permissions, netcat for debugging, PostgreSQL client tools, and curl for health check testing
+- `docker/nginx-main.conf` - Enhanced with proper event handling, security headers, and optimized settings
+- `docker/php-fpm.conf` - Added security settings, error handling, and session configuration
+- `Dockerfile` - Added PHP-FPM log directory creation, configuration testing, and proper permissions
 - `docker/debug.sh` - Created debug script for troubleshooting
 - `docker/test-deployment.sh` - Created test script for local validation
 - `docker/test-api-endpoints.sh` - Created comprehensive API endpoint testing script
 - `docker/debug-laravel.sh` - Created Laravel-specific debugging script
 - `docker/fix-405-error.sh` - Created script to specifically fix the 405 error
 - `docker/test-database.sh` - Created comprehensive database connectivity testing script
-- `docker/test-database-ssl.sh` - Created PostgreSQL SSL-specific testing script
-- `docker/test-health-check.sh` - Created script to test health check configuration locally
-- `docker/test-production-deployment.sh` - Created comprehensive production deployment validation script
+- `docker/debug-nginx-deployment.sh` - Created comprehensive nginx deployment debugging script
 
-## Production Deployment Solution
+## Root Cause Analysis
 
-### **What This Fix Provides:**
+The deployment was failing at the PHP-FPM startup step because:
 
-✅ **Reliable Health Checks** - Railway health checks will pass consistently  
-✅ **No 500 Errors** - Proper nginx configuration prevents server errors  
-✅ **No 403 Errors** - Correct file permissions and routing  
-✅ **Robust API Handling** - All HTTP methods work correctly  
-✅ **Production Ready** - Simplified but effective configuration  
-✅ **Comprehensive Testing** - Multiple validation scripts  
-✅ **Error Recovery** - Automatic retries and fallbacks  
+1. **Missing PHP-FPM log directory** - The container didn't have proper log directories for PHP-FPM
+2. **Permission issues** - PHP-FPM couldn't write to log files or start properly
+3. **Configuration validation** - No validation that PHP-FPM configuration was correct
+4. **Error handling** - Entrypoint script didn't handle PHP-FPM failures gracefully
 
-### **Key Features:**
+## What Was Fixed
 
-1. **Simplified Nginx Configuration** - Removed complex directives that caused conflicts
-2. **Robust Entrypoint Script** - 10-step deployment process with validation
-3. **Health Check Validation** - Tests health check endpoint before proceeding
-4. **Automatic Retries** - Health check retries with exponential backoff
-5. **Comprehensive Logging** - Detailed deployment progress and error reporting
-6. **Production Security** - Essential security headers without complexity
+### **PHP-FPM Configuration:**
+- Added proper log directory creation in Dockerfile
+- Enhanced PHP-FPM configuration with security settings
+- Added configuration validation during build
+- Fixed permission issues for log directories
+
+### **Entrypoint Script:**
+- Added comprehensive PHP-FPM error handling
+- Added PHP-FPM configuration testing
+- Added port availability checking
+- Added log file inspection on failure
+- Added proper error reporting and exit codes
+
+### **Nginx Configuration:**
+- Enhanced main nginx configuration with proper event handling
+- Added security headers at the http level
+- Optimized performance settings
+- Fixed server block inclusion
+
+### **Dockerfile:**
+- Added PHP-FPM log directory creation
+- Added PHP-FPM configuration testing
+- Fixed permission issues
+- Added proper directory ownership
 
 ## How to Deploy
 
-### 1. Test the Configuration Locally
-```bash
-./docker/test-production-deployment.sh
-```
-
-### 2. Build the Docker Image
+### 1. Build the Docker Image
 ```bash
 docker build -t availly .
 ```
 
-### 3. Run the Container
+### 2. Run the Container
 ```bash
 # For Railway/Heroku (uses PORT environment variable)
 docker run -p 8080:80 -e PORT=8080 availly
@@ -108,7 +121,7 @@ docker run -p 8080:80 -e PORT=8080 availly
 docker run -p 8080:80 availly
 ```
 
-### 4. Test the Deployment
+### 3. Test the Deployment
 ```bash
 # Test the health endpoint
 curl http://localhost:8080/health
@@ -127,14 +140,16 @@ curl -X POST http://localhost:8080/api/auth/login \
 
 ## Troubleshooting
 
+### If PHP-FPM fails to start:
+1. Check the container logs: `docker logs <container_id>`
+2. Run the debug script: `docker exec <container_id> /usr/local/bin/debug.sh`
+3. Check PHP-FPM configuration: `docker exec <container_id> php-fpm82 -t`
+4. Check PHP-FPM logs: `docker exec <container_id> tail -f /var/log/php-fpm/www-error.log`
+
 ### If nginx fails to start:
 1. Check the container logs: `docker logs <container_id>`
 2. Run the debug script: `docker exec <container_id> /usr/local/bin/debug.sh`
 3. Verify the nginx configuration: `docker exec <container_id> nginx -t`
-
-### If PHP-FPM fails:
-1. Check PHP-FPM logs: `docker exec <container_id> tail -f /var/log/php-fpm/www-error.log`
-2. Verify PHP-FPM is running: `docker exec <container_id> ps aux | grep php-fpm`
 
 ### If you get 405 errors on API endpoints:
 1. Run the 405 fix script: `docker exec <container_id> /usr/local/bin/fix-405-error.sh`
@@ -147,10 +162,9 @@ curl -X POST http://localhost:8080/api/auth/login \
 3. Check if the API location block is properly configured
 
 ### If health check fails:
-1. Test health check locally: `./docker/test-health-check.sh`
-2. Check nginx configuration syntax: `docker exec <container_id> nginx -t`
-3. Verify health check endpoint: `docker exec <container_id> curl -f http://localhost:8080/health`
-4. Check nginx logs for health check errors
+1. Check nginx configuration syntax: `docker exec <container_id> nginx -t`
+2. Verify health check endpoint: `docker exec <container_id> curl -f http://localhost:8080/health`
+3. Check nginx logs for health check errors
 
 ### If database connection fails:
 1. Run the database test script: `docker exec <container_id> /usr/local/bin/test-database.sh`
@@ -169,6 +183,7 @@ curl -X POST http://localhost:8080/api/auth/login \
 - **Network access**: Railway containers might have IP restrictions that need to be whitelisted
 - **Health check configuration**: Ensure health check endpoint is properly configured and accessible
 - **Production configuration**: Use the simplified, production-ready nginx configuration
+- **PHP-FPM startup**: Ensure proper log directories and permissions are set
 
 ## Environment Variables
 
@@ -194,19 +209,9 @@ The application includes a robust health check endpoint at `/health` that:
 
 ## Testing Scripts
 
-### Test Production Deployment Configuration
-```bash
-./docker/test-production-deployment.sh
-```
-
 ### Test Deployment Configuration
 ```bash
 ./docker/test-deployment.sh
-```
-
-### Test Health Check Configuration
-```bash
-./docker/test-health-check.sh
 ```
 
 ### Test API Endpoints
@@ -239,6 +244,12 @@ The application includes a robust health check endpoint at `/health` that:
 /usr/local/bin/test-database-ssl.sh
 ```
 
+### Debug Nginx Deployment Issues
+```bash
+# Run inside the container
+/usr/local/bin/debug-nginx-deployment.sh
+```
+
 ## Production Deployment Process
 
 The new entrypoint script follows a 10-step deployment process:
@@ -246,7 +257,7 @@ The new entrypoint script follows a 10-step deployment process:
 1. **Render Configuration** - Generate nginx config with correct port
 2. **Generate Environment** - Create frontend environment file
 3. **Ensure Directories** - Create Laravel public directory if needed
-4. **Start PHP-FPM** - Start PHP-FPM service
+4. **Start PHP-FPM** - Start PHP-FPM service with comprehensive error handling
 5. **Validate Nginx** - Test nginx configuration syntax
 6. **Run Migrations** - Execute Laravel migrations (non-blocking)
 7. **Start Nginx** - Start nginx in background mode
