@@ -79,7 +79,7 @@ const Register = () => {
       // Clean flow handling
       if (result.success) {
         // User is fully registered and verified
-        navigate('/onboarding');
+        navigate('/app/onboarding');
       } else if (result.requiresVerification) {
         // User needs to verify email
         const email = result.email || formData.email;

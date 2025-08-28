@@ -20,7 +20,9 @@ export const AuthProvider = ({ children }) => {
     register: storeRegister, 
     logout: storeLogout,
     getCurrentUser,
-    initialize: initializeAuth
+    initialize: initializeAuth,
+    verifyEmail: storeVerifyEmail,
+    resendVerification: storeResendVerification
   } = useAuthStore();
 
   const hasInitializedAuth = useRef(false);
@@ -103,25 +105,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   const verifyEmail = async (verificationData) => {
-    // This function is not directly available in the new store,
-    // so it will be removed or refactored if needed.
-    // For now, we'll return a placeholder or remove it if not used.
-    // Given the new_code, it seems the intent was to remove this function
-    // or refactor it to use the store's verifyEmail.
-    // For now, we'll return a placeholder.
-    console.warn("verifyEmail is not directly available in the new store. This function will be removed or refactored.");
-    return { success: false, message: "verifyEmail functionality not implemented in new store" };
+    try {
+      const user = await storeVerifyEmail(verificationData);
+      return { success: true, user };
+    } catch (error) {
+      return { success: false, message: error.message || 'Email verification failed' };
+    }
   };
 
   const resendVerification = async (email) => {
-    // This function is not directly available in the new store,
-    // so it will be removed or refactored if needed.
-    // For now, we'll return a placeholder or remove it if not used.
-    // Given the new_code, it seems the intent was to remove this function
-    // or refactor it to use the store's resendVerification.
-    // For now, we'll return a placeholder.
-    console.warn("resendVerification is not directly available in the new store. This function will be removed or refactored.");
-    return { success: false, message: "resendVerification functionality not implemented in new store" };
+    try {
+      const result = await storeResendVerification(email);
+      return { success: true, message: result.message };
+    } catch (error) {
+      return { success: false, message: error.message || 'Failed to resend verification email' };
+    }
   };
 
   const value = {

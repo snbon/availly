@@ -5,6 +5,7 @@ import StepIndicator from '../components/onboarding/StepIndicator';
 import WelcomeStep from '../components/onboarding/WelcomeStep';
 import TimezoneStep from '../components/onboarding/TimezoneStep';
 import ScheduleStep from '../components/onboarding/ScheduleStep';
+import UsernameStep from '../components/onboarding/UsernameStep';
 import CompletionStep from '../components/onboarding/CompletionStep';
 import { AlertContainer } from '../components/ui';
 import { useAlert } from '../hooks/useAlert';
@@ -16,6 +17,7 @@ const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [timezone, setTimezone] = useState('Europe/Brussels');
   const [timezoneError, setTimezoneError] = useState('');
+  const [username, setUsername] = useState('');
   const [availabilityRules, setAvailabilityRules] = useState([
     {
       id: 1,
@@ -57,6 +59,11 @@ const Onboarding = () => {
     },
     {
       number: 4,
+      title: 'Username',
+      description: 'Choose your public username'
+    },
+    {
+      number: 5,
       title: 'Complete',
       description: 'You\'re all set!'
     }
@@ -86,6 +93,10 @@ const Onboarding = () => {
   const handleTimezoneChange = (newTimezone) => {
     setTimezone(newTimezone);
     setTimezoneError('');
+  };
+
+  const handleUsernameChange = (newUsername) => {
+    setUsername(newUsername);
   };
 
   const validateTimezone = () => {
@@ -127,8 +138,27 @@ const Onboarding = () => {
         rules: backendRules
       });
 
+      // Save username to profile
+      if (username) {
+        console.log('Saving username:', username);
+        await api.put('/me/profile/username', {
+          username: username
+        });
+      }
+
       console.log('Onboarding completed successfully');
-              navigate('/app/dashboard');
+      
+      // Clear and refresh dashboard data to get updated username
+      try {
+        const dashboardStore = useDashboardStore.getState();
+        dashboardStore.clear(); // Clear cached data
+        await dashboardStore.fetchDashboardData(true); // Force refresh
+        console.log('Dashboard data cleared and refreshed after onboarding');
+      } catch (error) {
+        console.warn('Failed to refresh dashboard data:', error);
+      }
+      
+      navigate('/app/dashboard');
     } catch (error) {
       console.error('Failed to save availability rules:', error);
       console.error('Error details:', error.data);
@@ -178,6 +208,15 @@ const Onboarding = () => {
           />
         );
       case 4:
+        return (
+          <UsernameStep
+            username={username}
+            onUsernameChange={handleUsernameChange}
+            onPrevious={() => setCurrentStep(3)}
+            onNext={() => setCurrentStep(5)}
+          />
+        );
+      case 5:
         return (
           <CompletionStep
             isLoading={isLoading}

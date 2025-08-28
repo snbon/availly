@@ -17,6 +17,15 @@ const CalendarPreview = () => {
     initialize: initializeCalendar 
   } = useCalendarStore();
   
+  // Debug logging
+  useEffect(() => {
+    console.log('CalendarPreview: Availability store state:', {
+      availabilityInitialized,
+      availabilityRulesCount: availabilityRules?.length || 0,
+      hasAvailability: availabilityRules && availabilityRules.length > 0
+    });
+  }, [availabilityInitialized, availabilityRules]);
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState([]);
   const [userTimezone, setUserTimezone] = useState('Europe/Brussels');
@@ -354,7 +363,7 @@ const CalendarPreview = () => {
   };
 
   const handleSetAvailability = () => {
-    navigate('/onboarding');
+            navigate('/app/onboarding');
   };
 
   // Helper function to get timezone display name

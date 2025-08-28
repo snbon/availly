@@ -22,7 +22,7 @@ const useAuthStore = create((set, get) => ({
   isInitialized: false,
   
   // Actions
-  setUser: (user) => set({ user, isAuthenticated: !!user }),
+  setUser: (user, authenticated = false) => set({ user, isAuthenticated: authenticated }),
   
   setLoading: (loading) => set({ isLoading: loading }),
   
@@ -34,18 +34,37 @@ const useAuthStore = create((set, get) => ({
       set({ isLoading: true });
       
       const response = await api.login(credentials);
-      const { user, token } = response;
       
-      api.setToken(token);
+      // Check if verification is required
+      if (response.requires_verification) {
+        console.log('🔐 Login requires verification - not setting auth state');
+        set({ 
+          isLoading: false,
+          isAuthenticated: false, // Explicitly set to false
+          user: null,
+          isInitialized: false
+        });
+        // Return the response with verification requirement instead of setting auth
+        return response;
+      }
       
-      set({
-        user,
-        isAuthenticated: true,
-        isLoading: false,
-        isInitialized: true
-      });
+      // Only set auth if login is successful (no verification required)
+      if (response.user && response.token) {
+        api.setToken(response.token);
+        
+        set({
+          user: response.user,
+          isAuthenticated: true,
+          isLoading: false,
+          isInitialized: true
+        });
+        
+        return response.user;
+      }
       
-      return user;
+      // Fallback - return the response as-is
+      set({ isLoading: false });
+      return response;
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -58,18 +77,37 @@ const useAuthStore = create((set, get) => ({
       set({ isLoading: true });
       
       const response = await api.register(userData);
-      const { user, token } = response;
       
-      api.setToken(token);
+      // Check if verification is required
+      if (response.requires_verification) {
+        console.log('🔐 Registration requires verification - not setting auth state');
+        set({ 
+          isLoading: false,
+          isAuthenticated: false, // Explicitly set to false
+          user: null,
+          isInitialized: false
+        });
+        // Return the response with verification requirement instead of setting auth
+        return response;
+      }
       
-      set({
-        user,
-        isAuthenticated: true,
-        isLoading: false,
-        isInitialized: true
-      });
+      // Only set auth if registration is complete (no verification needed)
+      if (response.token && response.user) {
+        api.setToken(response.token);
+        
+        set({
+          user: response.user,
+          isAuthenticated: true,
+          isLoading: false,
+          isInitialized: true
+        });
+        
+        return response.user;
+      }
       
-      return user;
+      // Fallback - return the response as-is
+      set({ isLoading: false });
+      return response;
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -180,7 +218,45 @@ const useAuthStore = create((set, get) => ({
   // Update user profile
   updateProfile: (updates) => set((state) => ({
     user: state.user ? { ...state.user, ...updates } : null
-  }))
+  })),
+
+  // Add these missing methods
+  async verifyEmail(verificationData) {
+    try {
+      set({ isLoading: true });
+      
+      const response = await api.verifyEmail(verificationData);
+      const { user, token } = response;
+      
+      api.setToken(token);
+      
+      set({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        isInitialized: true
+      });
+      
+      return user;
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  async resendVerification(email) {
+    try {
+      set({ isLoading: true });
+      
+      const response = await api.resendVerification(email);
+      set({ isLoading: false });
+      
+      return response;
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  }
 }));
 
 export { useAuthStore };

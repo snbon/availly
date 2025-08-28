@@ -35,10 +35,10 @@ const AvailabilityPage = () => {
   const isPageLoading = isLoading || !isInitialized;
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3, path: '/dashboard' },
-    { id: 'availability', label: 'Availability', icon: Calendar, path: '/availability' },
-    { id: 'links', label: 'Links', icon: LinkIcon, path: '/links' },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/analytics' }
+    { id: 'overview', label: 'Overview', icon: BarChart3, path: '/app/dashboard' },
+    { id: 'availability', label: 'Availability', icon: Calendar, path: '/app/availability' },
+    { id: 'links', label: 'Links', icon: LinkIcon, path: '/app/links' },
+    { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/app/analytics' }
   ];
 
   // No need for useEffect - stores are already initialized when user logged in
@@ -128,7 +128,7 @@ const AvailabilityPage = () => {
               title="No availability rules set"
               description="Complete your onboarding to set your availability schedule"
               buttonText="Go to Onboarding"
-              onButtonClick={() => navigate('/onboarding')}
+              onButtonClick={() => navigate('/app/onboarding')}
             />
           ) : (
             <div className="space-y-6">

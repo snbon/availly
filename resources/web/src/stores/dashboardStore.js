@@ -30,6 +30,10 @@ const useDashboardStore = create((set, get) => ({
     // Skip if recently fetched (within 5 minutes) and not forced
     const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
     if (!force && state.lastFetched && state.lastFetched > fiveMinutesAgo) {
+      // Ensure we're marked as initialized even when returning cached data
+      if (!state.isInitialized) {
+        set({ isInitialized: true });
+      }
       return state.dashboardData;
     }
     
@@ -39,12 +43,17 @@ const useDashboardStore = create((set, get) => ({
       const response = await api.get('/me/dashboard/stats');
       const stats = response.stats;
       
+      console.log('Dashboard API response:', response);
+      console.log('Dashboard stats:', stats);
+      
       const dashboardData = {
         totalViews: stats.total_views || 0,
         hasAvailability: stats.has_availability || false,
         thisWeekEvents: stats.this_week_events || 0,
         userSlug: stats.user_slug || 'username'
       };
+      
+      console.log('Processed dashboard data:', dashboardData);
       
       set({
         dashboardData,

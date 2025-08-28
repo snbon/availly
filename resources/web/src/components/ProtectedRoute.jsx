@@ -26,7 +26,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requireVerification = tr
 
   // If verification is required but user is not verified
   if (requireVerification && isAuthenticated && user && !user.email_verified_at) {
-    return <Navigate to="/onboarding" replace />;
+            return <Navigate to="/app/onboarding" replace />;
   }
 
   // If user is authenticated and verified, but trying to access auth pages

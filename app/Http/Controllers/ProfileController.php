@@ -21,6 +21,7 @@ class ProfileController extends Controller
             $profile = Profile::create([
                 'user_id' => $user->id,
                 'slug' => substr(str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789'), 0, 8),
+                'username' => null,
                 'is_active' => true
             ]);
         }
@@ -78,7 +79,13 @@ class ProfileController extends Controller
         $profile = $user->profile;
 
         if (!$profile) {
-            return response()->json(['error' => 'Profile not found'], 404);
+            // Create profile if it doesn't exist
+            $profile = Profile::create([
+                'user_id' => $user->id,
+                'slug' => substr(str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789'), 0, 8),
+                'username' => null,
+                'is_active' => true
+            ]);
         }
 
         if (!$profile->canChangeUsername()) {
@@ -101,10 +108,23 @@ class ProfileController extends Controller
             'username.regex' => 'Username can only contain letters, numbers, and hyphens'
         ]);
 
+        \Log::info('Updating profile username', [
+            'profile_id' => $profile->id,
+            'old_username' => $profile->username,
+            'new_username' => $request->username,
+            'user_id' => $user->id
+        ]);
+
         $profile->update([
             'username' => $request->username,
             'username_last_changed' => now(),
             'slug' => $request->username
+        ]);
+
+        \Log::info('Profile username updated successfully', [
+            'profile_id' => $profile->id,
+            'new_username' => $profile->username,
+            'user_id' => $user->id
         ]);
 
         return response()->json([

@@ -35,10 +35,10 @@ const LinksPage = () => {
   const isLoading = !user || !profile;
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3, path: '/dashboard' },
-    { id: 'availability', label: 'Availability', icon: Calendar, path: '/availability' },
-    { id: 'links', label: 'Links', icon: LinkIcon, path: '/links' },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/analytics' }
+    { id: 'overview', label: 'Overview', icon: BarChart3, path: '/app/dashboard' },
+    { id: 'availability', label: 'Availability', icon: Calendar, path: '/app/availability' },
+    { id: 'links', label: 'Links', icon: LinkIcon, path: '/app/links' },
+    { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/app/analytics' }
   ];
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const LinksPage = () => {
       
       // Set default email text if username exists
       if (user.username) {
-        setEmailText(`You can view my availability in the following link: https://availly.me/u/${user.username}`);
+        setEmailText(`You can view my availability in the following link: https://availly.me/${user.username}`);
       }
     }
   }, [user, profile]);
@@ -124,7 +124,7 @@ const LinksPage = () => {
       setProfile(response.profile);
       
       // Update email text with new username
-      setEmailText(`You can view my availability in the following link: https://availly.me/u/${username}`);
+              setEmailText(`You can view my availability in the following link: https://availly.me/${username}`);
       
       showSuccess('Username updated successfully!');
     } catch (error) {
@@ -271,12 +271,12 @@ const LinksPage = () => {
                     <div className="flex items-center space-x-3">
                       <div className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-lg">
                         <code className="text-sm text-slate-800">
-                          https://availly.me/u/{profile.username}
+                          https://availly.me/{profile.username}
                         </code>
                       </div>
                       <Button
                         variant="secondary"
-                        onClick={() => copyToClipboard(`https://availly.me/u/${profile.username}`, setCopied)}
+                        onClick={() => copyToClipboard(`https://availly.me/${profile.username}`, setCopied)}
                         icon={copied ? Check : Copy}
                       >
                         {copied ? 'Copied!' : 'Copy'}

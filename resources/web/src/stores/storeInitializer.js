@@ -105,10 +105,11 @@ class StoreInitializationManager {
     const linksStore = useLinksStore.getState();
     const analyticsStore = useAnalyticsStore.getState();
 
-    // Initialize all stores in parallel for optimal performance
+    // Initialize stores in specific order for dependencies
+    // Availability first (needed by dashboard), then dashboard, then others
     const initializationPromises = [
-      this._initializeStore(dashboardStore, 'Dashboard'),
       this._initializeStore(availabilityStore, 'Availability'),
+      this._initializeStore(dashboardStore, 'Dashboard'),
       this._initializeStore(linksStore, 'Links'),
       this._initializeStore(analyticsStore, 'Analytics')
     ];
@@ -119,7 +120,7 @@ class StoreInitializationManager {
     // Check for any failed initializations
     const results = await Promise.allSettled(initializationPromises);
     const failedStores = results
-      .map((result, index) => ({ result, name: ['Dashboard', 'Availability', 'Links', 'Analytics'][index] }))
+      .map((result, index) => ({ result, name: ['Availability', 'Dashboard', 'Links', 'Analytics'][index] }))
       .filter(({ result }) => result.status === 'rejected');
     
     if (failedStores.length > 0) {

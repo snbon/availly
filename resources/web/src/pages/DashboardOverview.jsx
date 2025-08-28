@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { useStoreInitializer } from '../stores/storeInitializer';
+import { useAvailabilityStore } from '../stores/availabilityStore';
 import { brandGradients } from '../theme/brand';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import NavigationTabs from '../components/dashboard/NavigationTabs';
@@ -23,16 +24,45 @@ const DashboardOverview = () => {
   } = useDashboardStore();
 
   const { areStoresReady } = useStoreInitializer();
+  
+  // Also check availability store to ensure weekly schedule loads properly
+  const { availabilityRules, isInitialized: availabilityInitialized } = useAvailabilityStore();
 
   // Show loading until we have actual data, not just initialized stores
-  const isPageLoading = isLoading || !dashboardData;
+  // Also wait for availability data to ensure weekly schedule loads
+  const isPageLoading = isLoading || !dashboardData || !availabilityInitialized;
 
   const handleCopyLink = () => {
-    const link = `https://availly.me/u/${dashboardData.userSlug}`;
+    // Only copy if username is properly set
+    if (!dashboardData.userSlug || dashboardData.userSlug === 'username') {
+      return;
+    }
+    const link = `https://availly.me/${dashboardData.userSlug}`;
     navigator.clipboard.writeText(link).then(() => {
       console.log('Link copied to clipboard');
     });
   };
+
+  // Debug logging
+  console.log('DashboardOverview - dashboardData:', dashboardData);
+  console.log('DashboardOverview - userSlug:', dashboardData.userSlug);
+  console.log('DashboardOverview - hasAvailability:', dashboardData.hasAvailability);
+
+  // Force refresh dashboard data when component mounts to get latest data
+  useEffect(() => {
+    const refreshDashboardData = async () => {
+      try {
+        console.log('DashboardOverview: Refreshing dashboard data...');
+        await fetchDashboardData(true); // Force refresh
+        console.log('DashboardOverview: Dashboard data refreshed');
+      } catch (error) {
+        console.warn('DashboardOverview: Failed to refresh dashboard data:', error);
+      }
+    };
+
+    // Refresh data when component mounts
+    refreshDashboardData();
+  }, [fetchDashboardData]);
 
   const stats = [
     { 
@@ -47,15 +77,21 @@ const DashboardOverview = () => {
     },
     { 
       label: 'Copy Link', 
-      value: `availly.me/u/${dashboardData.userSlug}`, 
+      value: (() => {
+        // Only show link if username is properly set
+        if (!dashboardData.userSlug || dashboardData.userSlug === 'username') {
+          return 'Set username first';
+        }
+        return `availly.me/${dashboardData.userSlug}`;
+      })(), 
       change: dashboardData.hasAvailability ? 'Ready to share' : 'Set availability first', 
       changeType: dashboardData.hasAvailability ? 'positive' : 'warning',
       icon: LinkIcon, 
       color: dashboardData.hasAvailability ? 'green' : 'orange',
       bgColor: dashboardData.hasAvailability ? 'bg-green-50' : 'bg-orange-50',
       iconColor: dashboardData.hasAvailability ? 'text-green-600' : 'text-orange-600',
-      isClickable: dashboardData.hasAvailability,
-      onClick: dashboardData.hasAvailability ? handleCopyLink : () => navigate('/onboarding')
+      isClickable: dashboardData.hasAvailability && dashboardData.userSlug && dashboardData.userSlug !== 'username',
+      onClick: (dashboardData.hasAvailability && dashboardData.userSlug && dashboardData.userSlug !== 'username') ? handleCopyLink : () => navigate('/app/onboarding')
     },
     { 
       label: 'This Week', 
@@ -70,10 +106,10 @@ const DashboardOverview = () => {
   ];
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3, path: '/dashboard' },
-    { id: 'availability', label: 'Availability', icon: Calendar, path: '/availability' },
-    { id: 'links', label: 'Links', icon: LinkIcon, path: '/links' },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/analytics' }
+    { id: 'overview', label: 'Overview', icon: BarChart3, path: '/app/dashboard' },
+    { id: 'availability', label: 'Availability', icon: Calendar, path: '/app/availability' },
+    { id: 'links', label: 'Links', icon: LinkIcon, path: '/app/links' },
+    { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/app/analytics' }
   ];
 
   const handleSettingsClick = () => {

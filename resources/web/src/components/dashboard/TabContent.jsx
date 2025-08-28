@@ -192,7 +192,7 @@ const LinksTab = () => {
       
       // Set default email text if username exists
       if (response.profile.username) {
-        setEmailText(`You can view my availability in the following link: https://availly.me/u/${response.profile.username}`);
+        setEmailText(`You can view my availability in the following link: https://availly.me/${response.profile.username}`);
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -260,7 +260,7 @@ const LinksTab = () => {
       setProfile(response.profile);
       
       // Update email text with new username
-      setEmailText(`You can view my availability in the following link: https://availly.me/u/${username}`);
+              setEmailText(`You can view my availability in the following link: https://availly.me/${username}`);
       
       showSuccess('Username updated successfully!');
     } catch (error) {
@@ -299,7 +299,7 @@ const LinksTab = () => {
     } catch (error) {
       console.error('Failed to generate email text:', error);
       // Fallback to default
-      setEmailText(`You can view my availability in the following link: https://availly.me/u/${profile.username}`);
+              setEmailText(`You can view my availability in the following link: https://availly.me/${profile.username}`);
       showError('Failed to generate custom text, using default.');
     } finally {
       setIsGeneratingText(false);
@@ -387,12 +387,12 @@ const LinksTab = () => {
               <div className="flex items-center space-x-3">
                 <div className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-lg">
                   <code className="text-sm text-slate-800">
-                    https://availly.me/u/{profile.username}
+                    https://availly.me/{profile.username}
                   </code>
                 </div>
                 <Button
                   variant="secondary"
-                  onClick={() => copyToClipboard(`https://availly.me/u/${profile.username}`, setCopied)}
+                  onClick={() => copyToClipboard(`https://availly.me/${profile.username}`, setCopied)}
                   icon={copied ? Check : Copy}
                 >
                   {copied ? 'Copied!' : 'Copy'}

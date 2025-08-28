@@ -22,12 +22,20 @@ class DashboardController extends Controller
 
             // Get profile info efficiently
             $profile = $user->profile;
-            $userSlug = $profile?->username ?? ($user->email ? explode('@', $user->email)[0] : 'username');
+            $userSlug = $profile?->username ?? 'username';
 
             // Get availability status
             $hasAvailability = $user->availabilityRules->count() > 0;
+            
+            \Log::info('Dashboard stats - Profile info', [
+                'user_id' => $user->id,
+                'profile_id' => $profile?->id,
+                'profile_username' => $profile?->username,
+                'user_slug' => $userSlug,
+                'has_availability' => $hasAvailability
+            ]);
 
-            // Get analytics data (fast calculation)
+            // Get real analytics data from database
             $totalViews = $this->getTotalViewsForUser($user->id);
             
             // Get this week's events count from loaded relationship
@@ -36,7 +44,7 @@ class DashboardController extends Controller
             return response()->json([
                 'stats' => [
                     'total_views' => $totalViews,
-                    'views_this_week' => max(0, intval($totalViews * 0.15)),
+                    'views_this_week' => $this->getViewsThisWeekForUser($user->id),
                     'has_availability' => $hasAvailability,
                     'this_week_events' => $thisWeekEvents,
                     'user_slug' => $userSlug
@@ -52,7 +60,7 @@ class DashboardController extends Controller
                     'views_this_week' => 0,
                     'has_availability' => false,
                     'this_week_events' => 0,
-                    'user_slug' => $user->email ? explode('@', $user->email)[0] : 'username'
+                    'user_slug' => 'username'
                 ]
             ]);
         }
@@ -60,14 +68,36 @@ class DashboardController extends Controller
 
     private function getTotalViewsForUser($userId): int
     {
-        // Consistent view count based on user ID
-        return max(0, ($userId * 7) % 150);
+        try {
+            // Get real total views from link_views table
+            $totalViews = DB::table('link_views')
+                ->join('links', 'link_views.link_id', '=', 'links.id')
+                ->where('links.user_id', $userId)
+                ->count();
+            
+            return $totalViews;
+        } catch (\Exception $e) {
+            \Log::error('Failed to get total views: ' . $e->getMessage());
+            return 0;
+        }
     }
 
     private function getViewsThisWeekForUser($userId): int
     {
-        $totalViews = $this->getTotalViewsForUser($userId);
-        return max(0, intval($totalViews * 0.15));
+        try {
+            // Get real views this week from link_views table
+            $viewsThisWeek = DB::table('link_views')
+                ->join('links', 'link_views.link_id', '=', 'links.id')
+                ->where('links.user_id', $userId)
+                ->where('link_views.created_at', '>=', Carbon::now()->startOfWeek())
+                ->where('link_views.created_at', '<=', Carbon::now()->endOfWeek())
+                ->count();
+            
+            return $viewsThisWeek;
+        } catch (\Exception $e) {
+            \Log::error('Failed to get views this week: ' . $e->getMessage());
+            return 0;
+        }
     }
 
     private function getThisWeekEventsCount($user, $startDate, $endDate): int

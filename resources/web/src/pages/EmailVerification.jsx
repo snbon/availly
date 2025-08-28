@@ -60,7 +60,7 @@ const EmailVerification = () => {
         
         // Show success message for 2 seconds, then redirect
         setTimeout(() => {
-          navigate('/onboarding', { replace: true });
+          navigate('/app/onboarding', { replace: true });
         }, 2000);
       } else {
         setError(result.message || 'Invalid verification code');

@@ -26,10 +26,10 @@ const AnalyticsPage = () => {
   const { areStoresReady } = useStoreInitializer();
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3, path: '/dashboard' },
-    { id: 'availability', label: 'Availability', icon: Calendar, path: '/availability' },
-    { id: 'links', label: 'Links', icon: LinkIcon, path: '/links' },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/analytics' }
+    { id: 'overview', label: 'Overview', icon: BarChart3, path: '/app/dashboard' },
+    { id: 'availability', label: 'Availability', icon: Calendar, path: '/app/availability' },
+    { id: 'links', label: 'Links', icon: LinkIcon, path: '/app/links' },
+    { id: 'analytics', label: 'Analytics', icon: TrendingUp, path: '/app/analytics' }
   ];
 
   // Show loading until we have actual analytics data
