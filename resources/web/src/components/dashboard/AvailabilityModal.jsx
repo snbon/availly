@@ -21,9 +21,32 @@ const AvailabilityModal = ({ isOpen, onClose, onSave, initialRules = [] }) => {
     { value: 6, label: 'Sunday' }
   ];
 
+  // Helper function to ensure time format is always H:i
+  const formatTimeToHhMm = (timeString) => {
+    if (!timeString) return '';
+    // Remove any seconds and ensure format is H:i
+    const parts = timeString.split(':');
+    if (parts.length >= 2) {
+      return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+    }
+    return timeString;
+  };
+
   useEffect(() => {
     if (isOpen) {
-      setRules(initialRules.length > 0 ? [...initialRules] : [createEmptyRule()]);
+      if (initialRules.length > 0) {
+        // Ensure all existing rules have proper time format (H:i)
+        const formattedRules = initialRules.map(rule => ({
+          ...rule,
+          start_time_local: formatTimeToHhMm(rule.start_time_local),
+          end_time_local: formatTimeToHhMm(rule.end_time_local)
+        }));
+        setRules(formattedRules);
+        console.log('Loaded and formatted existing rules:', formattedRules);
+      } else {
+        setRules([createEmptyRule()]);
+        console.log('Created new empty rule');
+      }
     }
   }, [isOpen, initialRules]);
 
@@ -54,40 +77,86 @@ const AvailabilityModal = ({ isOpen, onClose, onSave, initialRules = [] }) => {
       setIsLoading(true);
 
       // Validate rules
+      if (rules.length === 0) {
+        showError('Please add at least one availability slot');
+        return;
+      }
+
       for (const rule of rules) {
         if (!rule.start_time_local || !rule.end_time_local) {
           showError('Please fill in all time fields');
           return;
         }
         
-        const startTime = new Date(`2000-01-01T${rule.start_time_local}:00`);
-        const endTime = new Date(`2000-01-01T${rule.end_time_local}:00`);
+        // Ensure time format is H:i before validation
+        const startTime = formatTimeToHhMm(rule.start_time_local);
+        const endTime = formatTimeToHhMm(rule.end_time_local);
         
-        if (startTime >= endTime) {
+        // Validate time format
+        const timeFormatRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        if (!timeFormatRegex.test(startTime) || !timeFormatRegex.test(endTime)) {
+          showError('Time format must be HH:MM (24-hour format)');
+          return;
+        }
+        
+        const startTimeObj = new Date(`2000-01-01T${startTime}:00`);
+        const endTimeObj = new Date(`2000-01-01T${endTime}:00`);
+        
+        if (startTimeObj >= endTimeObj) {
           showError('End time must be after start time');
           return;
         }
       }
 
-      // Delete existing rules first (if any)
-      if (initialRules.length > 0) {
-        for (const rule of initialRules) {
-          if (!rule.isNew) {
-            await api.delete(`/me/availability-rules/${rule.id}`);
-          }
+      // Check if user is removing existing rules and warn them
+      const existingRulesCount = initialRules.filter(rule => !rule.isNew).length;
+      const newRulesCount = rules.length;
+      
+      if (existingRulesCount > 0 && newRulesCount < existingRulesCount) {
+        const removedCount = existingRulesCount - newRulesCount;
+        if (!confirm(`You are removing ${removedCount} availability slot${removedCount > 1 ? 's' : ''}. Are you sure you want to continue?`)) {
+          setIsLoading(false);
+          return;
         }
       }
 
-      // Create new rules
-      for (const rule of rules) {
-        const ruleData = {
-          weekday: rule.weekday,
-          start_time_local: rule.start_time_local,
-          end_time_local: rule.end_time_local
-        };
-        
-        await api.post('/me/availability-rules', ruleData);
+      // Prevent saving empty schedule if user had rules before
+      if (existingRulesCount > 0 && newRulesCount === 0) {
+        if (!confirm('You are removing all availability slots. This will make your calendar completely unavailable. Are you sure you want to continue?')) {
+          setIsLoading(false);
+          return;
+        }
       }
+
+      // Use the bulk update endpoint which handles deletion and creation atomically
+      // Backend now expects 'start_time_local' and 'end_time_local' to match database schema
+      const rulesData = rules.map(rule => {
+        // Ensure time format is correct (H:i format - 24-hour)
+        // HTML time input can return H:i:s format, but backend expects H:i
+        const startTime = formatTimeToHhMm(rule.start_time_local);
+        const endTime = formatTimeToHhMm(rule.end_time_local);
+        
+        console.log('Processing rule time:', { 
+          original: { start: rule.start_time_local, end: rule.end_time_local },
+          processed: { start: startTime, end: endTime }
+        });
+        
+        return {
+          weekday: rule.weekday,
+          start_time_local: startTime,
+          end_time_local: endTime
+        };
+      });
+
+      console.log('Saving availability rules:', {
+        existingRules: initialRules.length,
+        newRules: rulesData.length,
+        rulesData
+      });
+
+      await api.post('/me/availability-rules', { rules: rulesData });
+
+      console.log('Availability rules saved successfully');
 
       showSuccess('Availability updated successfully!');
       onSave();
@@ -157,7 +226,11 @@ const AvailabilityModal = ({ isOpen, onClose, onSave, initialRules = [] }) => {
                     <Input
                       type="time"
                       value={rule.start_time_local}
-                      onChange={(e) => updateRule(rule.id, 'start_time_local', e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        console.log('Start time input change:', { original: value, formatted: formatTimeToHhMm(value) });
+                        updateRule(rule.id, 'start_time_local', formatTimeToHhMm(value));
+                      }}
                     />
                   </div>
 
@@ -168,7 +241,11 @@ const AvailabilityModal = ({ isOpen, onClose, onSave, initialRules = [] }) => {
                     <Input
                       type="time"
                       value={rule.end_time_local}
-                      onChange={(e) => updateRule(rule.id, 'end_time_local', e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        console.log('End time input change:', { original: value, formatted: formatTimeToHhMm(value) });
+                        updateRule(rule.id, 'end_time_local', formatTimeToHhMm(value));
+                      }}
                     />
                   </div>
                 </div>

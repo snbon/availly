@@ -30,6 +30,27 @@ const AvailabilityPage = () => {
   const { areStoresReady } = useStoreInitializer();
   
   const [showModal, setShowModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // Force re-render after save
+  const [localRefresh, setLocalRefresh] = useState(0); // Additional local refresh mechanism
+  
+  // Manual refresh function to ensure UI updates
+  const refreshAvailabilityData = async () => {
+    try {
+      console.log('Manual refresh triggered...');
+      const { fetchAvailabilityRules } = useAvailabilityStore.getState();
+      const newRules = await fetchAvailabilityRules(true);
+      console.log('Manual refresh completed, new rules:', newRules);
+      
+      // Force re-render
+      setRefreshKey(prev => prev + 1);
+      setLocalRefresh(prev => prev + 1);
+      
+      return newRules;
+    } catch (error) {
+      console.error('Manual refresh failed:', error);
+      throw error;
+    }
+  };
   
   // Show loading until we have actual availability data
   const isPageLoading = isLoading || !isInitialized;
@@ -89,6 +110,14 @@ const AvailabilityPage = () => {
   const groupedRules = groupRulesByDay(availabilityRules);
   const hasRules = availabilityRules.length > 0;
 
+  // Debug logging
+  console.log('AvailabilityPage: Current state:', {
+    availabilityRules,
+    hasRules,
+    isPageLoading,
+    isInitialized
+  });
+
   return (
     <div className={`min-h-screen ${brandGradients.background} relative`}>
       {/* Background decorations */}
@@ -131,7 +160,7 @@ const AvailabilityPage = () => {
               onButtonClick={() => navigate('/app/onboarding')}
             />
           ) : (
-            <div className="space-y-6">
+            <div key={`${refreshKey}-${localRefresh}`} className="space-y-6">
               {Object.entries(groupedRules).map(([day, rules]) => (
                 <div key={day} className="border-b border-slate-100 pb-4 last:border-b-0">
                   <div className="flex items-center justify-between mb-3">
@@ -185,7 +214,27 @@ const AvailabilityPage = () => {
         <AvailabilityModal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
-          onSave={initialize} // Assuming initialize will refetch or update the store
+          onSave={async () => {
+            console.log('AvailabilityModal: onSave called, refreshing data...');
+            
+            try {
+              // Use manual refresh function to ensure UI updates
+              await refreshAvailabilityData();
+              console.log('AvailabilityModal: Manual refresh completed');
+              
+              // Additional debugging to see if data was refreshed
+              setTimeout(() => {
+                const currentState = useAvailabilityStore.getState();
+                console.log('AvailabilityPage: After refresh state:', {
+                  availabilityRules: currentState.availabilityRules,
+                  hasRules: currentState.availabilityRules.length > 0,
+                  isInitialized: currentState.isInitialized
+                });
+              }, 100);
+            } catch (error) {
+              console.error('Failed to refresh availability data:', error);
+            }
+          }}
           initialRules={availabilityRules}
         />
       </main>

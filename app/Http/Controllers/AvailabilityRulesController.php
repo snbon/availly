@@ -35,11 +35,18 @@ class AvailabilityRulesController extends Controller
     {
         $user = $request->user();
 
+        // Debug: Log the incoming request data
+        \Log::info('Availability rules store request', [
+            'user_id' => $user->id,
+            'request_data' => $request->all(),
+            'rules' => $request->input('rules')
+        ]);
+
         $request->validate([
             'rules' => 'required|array',
             'rules.*.weekday' => 'required|integer|min:0|max:6',
-            'rules.*.start_time' => 'required|string|date_format:H:i',
-            'rules.*.end_time' => 'required|string|date_format:H:i',
+            'rules.*.start_time_local' => 'required|string|date_format:H:i',
+            'rules.*.end_time_local' => 'required|string|date_format:H:i',
         ]);
 
         // Clear existing rules for the user
@@ -50,8 +57,8 @@ class AvailabilityRulesController extends Controller
         foreach ($request->rules as $ruleData) {
             $rule = $user->availabilityRules()->create([
                 'weekday' => $ruleData['weekday'],
-                'start_time_local' => $ruleData['start_time'],
-                'end_time_local' => $ruleData['end_time']
+                'start_time_local' => $ruleData['start_time_local'],
+                'end_time_local' => $ruleData['end_time_local']
             ]);
 
             $createdRules[] = [

@@ -383,8 +383,8 @@ const CalendarSettings = () => {
       <AlertContainer alerts={alerts} onRemoveAlert={removeAlert} />
       
       {/* Header */}
-      <Card padding="lg">
-        <div className="flex items-center justify-between">
+      <Card padding="lg" className="mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Calendar Integrations</h2>
             <p className="text-slate-600">
@@ -398,6 +398,7 @@ const CalendarSettings = () => {
               variant={syncCompleted ? "success" : "secondary"}
               icon={syncCompleted ? Check : RefreshCw}
               disabled={syncCompleted}
+              className="w-full lg:w-auto"
             >
               {syncCompleted ? 'Sync Complete' : 'Sync Now'}
             </Button>
@@ -405,14 +406,14 @@ const CalendarSettings = () => {
         </div>
       </Card>
 
-      {/* Google Calendar Connection */}
-      <Card padding="lg">
-        <div className="flex items-start justify-between">
+            {/* Google Calendar Connection */}
+      <Card padding="lg" className="transition-all duration-200 hover:shadow-md mb-4">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between space-y-4 lg:space-y-0">
           <div className="flex items-start space-x-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 hover:scale-105">
               <Calendar className="w-6 h-6 text-blue-600" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="text-lg font-semibold text-slate-900 mb-1">Google Calendar</h3>
               <p className="text-slate-600 text-sm mb-3">
                 Sync your Google Calendar events to automatically block busy times.
@@ -437,7 +438,7 @@ const CalendarSettings = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
             {hasActiveConnection ? (
               <>
                 <Button
@@ -448,6 +449,7 @@ const CalendarSettings = () => {
                     // TODO: Open calendar selection modal
                     showSuccess('Calendar selection coming soon! All calendars are currently included by default.');
                   }}
+                  className="w-full sm:w-auto"
                 >
                   Manage Calendars
                 </Button>
@@ -456,6 +458,7 @@ const CalendarSettings = () => {
                   size="sm"
                   icon={Trash2}
                   onClick={handleDisconnectGoogle}
+                  className="w-full sm:w-auto"
                 >
                   Disconnect
                 </Button>
@@ -465,8 +468,9 @@ const CalendarSettings = () => {
                 onClick={handleConnectGoogle}
                 loading={isConnecting}
                 icon={Plus}
+                className="w-full sm:w-auto"
               >
-                Connect Google Calendar
+                Connect
               </Button>
             )}
           </div>
@@ -474,13 +478,13 @@ const CalendarSettings = () => {
       </Card>
 
       {/* Microsoft Calendar Connection */}
-      <Card padding="lg">
-        <div className="flex items-start justify-between">
+      <Card padding="lg" className="transition-all duration-200 hover:shadow-md mb-4">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between space-y-4 lg:space-y-0">
           <div className="flex items-start space-x-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 hover:scale-105">
               <Mail className="w-6 h-6 text-blue-600" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="text-lg font-semibold text-slate-900 mb-1">Microsoft Outlook</h3>
               <p className="text-slate-600 text-sm mb-3">
                 Sync your Microsoft Outlook calendar events to automatically block busy times.
@@ -505,7 +509,7 @@ const CalendarSettings = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
             {microsoftConnection?.status === 'active' ? (
               <>
                 <Button
@@ -516,6 +520,7 @@ const CalendarSettings = () => {
                     // TODO: Open calendar selection modal
                     showSuccess('Calendar selection coming soon! All calendars are currently included by default.');
                   }}
+                  className="w-full sm:w-auto"
                 >
                   Manage Calendars
                 </Button>
@@ -524,6 +529,7 @@ const CalendarSettings = () => {
                   size="sm"
                   icon={Trash2}
                   onClick={handleDisconnectMicrosoft}
+                  className="w-full sm:w-auto"
                 >
                   Disconnect
                 </Button>
@@ -534,6 +540,7 @@ const CalendarSettings = () => {
                 loading={isConnecting}
                 icon={Plus}
                 disabled={true}
+                className="w-full sm:w-auto"
               >
                 Coming Soon 
               </Button>
@@ -543,13 +550,13 @@ const CalendarSettings = () => {
       </Card>
 
       {/* Apple Calendar Connection */}
-      <Card padding="lg">
-        <div className="flex items-start justify-between">
+      <Card padding="lg" className="transition-all duration-200 hover:shadow-md">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between space-y-4 lg:space-y-0">
           <div className="flex items-start space-x-4">
-            <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 hover:scale-105">
               <Apple className="w-6 h-6 text-white" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="text-lg font-semibold text-slate-900 mb-1">Apple Calendar</h3>
               <p className="text-slate-600 text-sm mb-3">
                 Sync your Apple iCloud calendar events to automatically block busy times.
@@ -574,7 +581,7 @@ const CalendarSettings = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
             {appleConnection?.status === 'active' ? (
               <>
                 <Button
@@ -585,6 +592,7 @@ const CalendarSettings = () => {
                     // TODO: Open calendar selection modal
                     showSuccess('Calendar selection coming soon! All calendars are currently included by default.');
                   }}
+                  className="w-full sm:w-auto"
                 >
                   Manage Calendars
                 </Button>
@@ -593,27 +601,31 @@ const CalendarSettings = () => {
                   size="sm"
                   icon={Trash2}
                   onClick={handleDisconnectApple}
+                  className="w-full sm:w-auto"
                 >
                   Disconnect
                 </Button>
               </>
             ) : (
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setShowAppleHelpModal(true)}
-                  className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center space-x-1 transition-colors"
-                >
-                  <HelpCircle className="w-4 h-4" />
-                  <span>How to connect</span>
-                </button>
+              <>
                 <Button
                   onClick={handleShowAppleConnect}
                   loading={isConnecting}
                   icon={Plus}
+                  className="w-full sm:w-auto"
                 >
-                  Connect Apple Calendar
+                  Connect
                 </Button>
-              </div>
+                <Button
+                  onClick={() => setShowAppleHelpModal(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50 w-full sm:w-auto"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span>How to connect</span>
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -623,12 +635,14 @@ const CalendarSettings = () => {
           <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-sm font-semibold text-slate-900">Connect Apple Calendar</h4>
-              <button
+              <Button
                 onClick={() => setShowAppleConnectForm(false)}
-                className="text-slate-400 hover:text-slate-600"
+                variant="ghost"
+                size="sm"
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
             
             <div className="space-y-4">
@@ -656,12 +670,14 @@ const CalendarSettings = () => {
                 />
                 <p className="text-xs text-slate-500 mt-1">
                   Need help generating this?{' '}
-                  <button
+                  <Button
                     onClick={() => setShowAppleHelpModal(true)}
-                    className="text-indigo-600 hover:text-indigo-800 font-medium"
+                    variant="ghost"
+                    size="sm"
+                    className="text-indigo-600 hover:text-indigo-800 font-medium p-0 h-auto"
                   >
                     Click here for step-by-step guide
-                  </button>
+                  </Button>
                 </p>
               </div>
               
@@ -684,7 +700,7 @@ const CalendarSettings = () => {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-red-800">{appleError}</p>
-                      <button
+                      <Button
                         onClick={() => {
                           setAppleError(null);
                           if (appleErrorTimer) {
@@ -692,10 +708,12 @@ const CalendarSettings = () => {
                             setAppleErrorTimer(null);
                           }
                         }}
-                        className="text-red-400 hover:text-red-600 transition-colors"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400 hover:text-red-600 hover:bg-red-50"
                       >
                         <X className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                     <div className="mt-2 bg-red-200 rounded-full h-1 overflow-hidden">
                       <div 
