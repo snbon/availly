@@ -11,6 +11,10 @@ vendor/
 dist/
 build/
 public/build/
+resources/web/.vite/
+resources/web/node_modules/
+*.js.map
+chunk-*.js
 
 # Logs
 *.log
