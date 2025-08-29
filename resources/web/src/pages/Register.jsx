@@ -108,11 +108,11 @@ const Register = () => {
       <div className={`${responsive.width.container} relative z-10`}>
         {/* Logo and Header */}
         <div className="text-center mb-6 sm:mb-8 md:mb-10">
-          <div className="flex justify-center mb-6 sm:mb-8">
+          <div className="flex justify-center mb-4 sm:mb-6">
             <Logo size="xl" variant="default" />
           </div>
-          <h1 className={`${responsive.text.h1} font-bold text-slate-900 mb-2 sm:mb-3`}>Join Availly</h1>
-          <p className={`${responsive.text.body} text-slate-600`}>Start your productivity journey today</p>
+          <h1 className={`${responsive.text.h1} font-bold text-slate-900 mb-2 sm:mb-3`}>Hi there!</h1>
+          <p className={`${responsive.text.body} text-slate-600`}>Start managing your availability today</p>
         </div>
 
         {/* Registration Form */}

@@ -80,7 +80,7 @@ const Login = () => {
       <div className={`${responsive.width.container} relative z-10`}>
         {/* Logo and Header */}
         <div className="text-center mb-8 sm:mb-12">
-          <div className="flex justify-center mb-6 sm:mb-8">
+          <div className="flex justify-center mb-4 sm:mb-6">
             <Logo size="xl" variant="default" />
           </div>
           <h1 className={`${responsive.text.h1} font-bold text-slate-900 mb-2 sm:mb-3`}>Welcome back</h1>
