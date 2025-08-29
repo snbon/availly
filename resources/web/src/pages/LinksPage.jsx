@@ -42,13 +42,9 @@ const LinksPage = () => {
   ];
 
   useEffect(() => {
-    // Debug: Check what's in the user object
-    console.log('LinksPage - User object:', user);
-    console.log('LinksPage - Current profile:', profile);
-    console.log('LinksPage - Current username state:', username);
-    
     // Get profile from user data (already available from auth)
     if (user && !profile) {
+      // Set initial profile data
       setProfile({
         username: user.username || '',
         can_change_username: true,
@@ -60,8 +56,34 @@ const LinksPage = () => {
       if (user.username) {
         setEmailText(`You can view my availability in the following link: https://availly.me/${user.username}`);
       }
+      
+      // Fetch actual profile data from backend to get username change restrictions
+      fetchProfileData();
     }
   }, [user, profile]);
+
+  const fetchProfileData = async () => {
+    try {
+      const response = await api.get('/me/profile');
+      if (response.profile) {
+        setProfile(response.profile);
+        // Update username state if it's different
+        if (response.profile.username && response.profile.username !== username) {
+          setUsername(response.profile.username);
+          setEmailText(`You can view my availability in the link: https://availly.me/${response.profile.username}`);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile data:', error);
+    }
+  };
+
+  // Check if user can change username - only allow if we have profile data AND can_change_username is true
+  const canChangeUsername = Boolean(profile?.can_change_username);
+  const hasProfileData = Boolean(profile);
+  
+  // Input should be enabled only when we have profile data AND username changes are allowed
+  const isInputEnabled = hasProfileData && canChangeUsername;
 
 
 
@@ -95,6 +117,11 @@ const LinksPage = () => {
   };
 
   const handleUsernameChange = (e) => {
+    // Prevent changes if input is not enabled
+    if (!isInputEnabled) {
+      return;
+    }
+    
     const value = e.target.value;
     setUsername(value);
     
@@ -112,6 +139,12 @@ const LinksPage = () => {
   };
 
   const handleSaveUsername = async () => {
+    // Prevent save if input is not enabled
+    if (!isInputEnabled) {
+      showError('Username changes are not currently allowed.');
+      return;
+    }
+    
     const error = validateUsername(username);
     if (error) {
       setUsernameError(error);
@@ -124,12 +157,18 @@ const LinksPage = () => {
       setProfile(response.profile);
       
       // Update email text with new username
-              setEmailText(`You can view my availability in the following link: https://availly.me/${username}`);
+      setEmailText(`You can view my availability in the following link: https://availly.me/${username}`);
       
       showSuccess('Username updated successfully!');
     } catch (error) {
       console.error('Failed to save username:', error);
-      showError('Failed to save username. Please try again.');
+      
+      // Handle specific error messages from the backend
+      if (error.data && error.data.error) {
+        showError(error.data.error);
+      } else {
+        showError('Failed to save username. Please try again.');
+      }
     } finally {
       setSaving(false);
     }
@@ -224,17 +263,20 @@ const LinksPage = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Username
+                    Username <span className="text-xs text-slate-500 font-normal">(Can change every 14 days)</span>
                   </label>
                   <div className="flex items-center space-x-3">
                     <div className="flex-1">
-                      <Input
-                        type="text"
-                        value={username}
-                        onChange={handleUsernameChange}
-                        placeholder="Enter username (4-15 characters)"
-                        className={usernameError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}
-                      />
+                                              <Input
+                          type="text"
+                          value={username}
+                          onChange={isInputEnabled ? handleUsernameChange : () => {}}
+                          placeholder={isInputEnabled ? "Enter username (4-15 characters)" : hasProfileData ? "Username change not allowed" : "Loading..."}
+                          className={`${usernameError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''} ${!isInputEnabled ? 'bg-gray-100 text-gray-500' : ''}`}
+                          disabled={!isInputEnabled}
+                          readOnly={!isInputEnabled}
+                          style={{ cursor: isInputEnabled ? 'text' : 'not-allowed' }}
+                        />
                       {usernameError && (
                         <p className="mt-1 text-sm text-red-600 flex items-center">
                           <AlertCircle className="w-4 h-4 mr-1" />
@@ -244,19 +286,14 @@ const LinksPage = () => {
                     </div>
                     <Button
                       onClick={handleSaveUsername}
-                      disabled={isSaving || !!usernameError || !username || username === profile?.username}
+                      disabled={isSaving || !!usernameError || !username || username === profile?.username || !isInputEnabled}
                       loading={isSaving}
                     >
-                      {profile?.username ? 'Update' : 'Set'} Username
+                      {profile?.username ? 'Update' : 'Set'} 
                     </Button>
                   </div>
                   <p className="mt-2 text-sm text-slate-500">
-                    Only letters, numbers, and hyphens allowed. 
-                    {profile?.can_change_username === false && (
-                      <span className="text-amber-600">
-                        {' '}Can be changed again in {profile.days_until_change} days.
-                      </span>
-                    )}
+                    Only letters, numbers, and hyphens allowed.
                   </p>
                 </div>
               </div>

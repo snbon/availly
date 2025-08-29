@@ -90,7 +90,7 @@ class ProfileController extends Controller
 
         if (!$profile->canChangeUsername()) {
             return response()->json([
-                'error' => 'Username can only be changed once per month',
+                'error' => 'Username can only be changed once every 2 weeks',
                 'days_until_change' => $profile->daysUntilUsernameChange()
             ], 422);
         }

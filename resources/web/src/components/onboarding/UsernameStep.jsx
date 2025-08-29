@@ -136,6 +136,9 @@ const UsernameStep = ({ username, onUsernameChange, error, onPrevious, onNext })
           <p className="text-xs text-slate-500 mt-2">
             Username must be 4-15 characters, letters, numbers, and hyphens only
           </p>
+          <p className="text-xs text-amber-600 mt-1">
+            ⚠️ Username can only be changed once every 2 weeks
+          </p>
         </div>
 
         <div className="flex justify-between pt-6">

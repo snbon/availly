@@ -32,7 +32,7 @@ class Profile extends Model
             return true;
         }
 
-        return $this->username_last_changed->diffInDays(now()) >= 30;
+        return $this->username_last_changed->diffInDays(now()) >= 14;
     }
 
     public function daysUntilUsernameChange(): int
@@ -42,7 +42,7 @@ class Profile extends Model
         }
 
         $daysSinceLastChange = $this->username_last_changed->diffInDays(now());
-        return max(0, 30 - $daysSinceLastChange);
+        return max(0, 14 - $daysSinceLastChange);
     }
 
     public function generateSlug(): string

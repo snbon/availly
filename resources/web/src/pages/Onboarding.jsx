@@ -158,7 +158,13 @@ const Onboarding = () => {
         console.warn('Failed to refresh dashboard data:', error);
       }
       
+      // Navigate to dashboard and then hard refresh to ensure all data loads
       navigate('/app/dashboard');
+      
+      // Add a small delay to ensure navigation completes, then hard refresh
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     } catch (error) {
       console.error('Failed to save availability rules:', error);
       console.error('Error details:', error.data);

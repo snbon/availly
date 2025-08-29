@@ -44,7 +44,7 @@ const DashboardHeader = ({ user, onLogout, onSettingsClick }) => {
               </div>
               <div className="hidden md:block">
                 <p className="text-sm font-semibold text-slate-900">{user?.name || 'User'}</p>
-                <p className="text-xs text-slate-500">Premium Member</p>
+                {/* <p className="text-xs text-slate-500">Premium Member</p> */}
               </div>
             </div>
           </div>

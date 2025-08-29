@@ -45,7 +45,7 @@ const Alert = ({
   };
 
   const getAlertStyles = () => {
-    const baseStyles = 'p-4 rounded-lg flex items-start space-x-3 transition-all duration-300';
+    const baseStyles = 'p-4 pb-6 rounded-lg flex items-start space-x-3 transition-all duration-300';
     
     switch (type) {
       case 'success':

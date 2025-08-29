@@ -1,7 +1,22 @@
 import React from 'react';
 import { Calendar, Clock, Sparkles } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Logo = ({ size = 'md', showText = true, variant = 'default' }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const handleLogoClick = () => {
+    // If we're on landing page or legal pages, go to root
+    if (location.pathname === '/' || 
+        location.pathname === '/privacypolicy' || 
+        location.pathname === '/termsofservice') {
+      window.location.href = 'https://availly.me';
+    } else {
+      // If we're in the app, go to dashboard
+      navigate('/app/dashboard');
+    }
+  };
   const sizes = {
     sm: { container: 'w-8 h-8', icon: 'w-4 h-4', text: 'text-sm' },
     md: { container: 'w-12 h-12', icon: 'w-6 h-6', text: 'text-xl' },
@@ -19,7 +34,10 @@ const Logo = ({ size = 'md', showText = true, variant = 'default' }) => {
   const textColor = variant === 'light' ? 'text-purple-900' : 'text-slate-900';
 
   return (
-    <div className="flex items-center space-x-3">
+    <div 
+      className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
+      onClick={handleLogoClick}
+    >
       <div className={`${sizes[size].container} ${variants[variant]} rounded-2xl flex items-center justify-center shadow-lg relative overflow-hidden group`}>
         {/* Sparkle effect */}
         <div className="absolute inset-0 opacity-20">

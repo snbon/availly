@@ -41,6 +41,10 @@ function App() {
             
             {/* App routes - protected, under /app/* */}
             <Route 
+              path="/app/" 
+              element={<Navigate to="/app/dashboard" replace />} 
+            />
+            <Route 
               path="/app/onboarding" 
               element={
                 <ProtectedRoute requireAuth={true} requireVerification={false}>
