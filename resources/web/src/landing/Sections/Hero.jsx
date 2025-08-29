@@ -113,7 +113,7 @@ const Hero = () => {
             <p className="p-large max-w-3xl mx-auto px-2 sm:px-0 break-words max-w-sm sm:max-w-none mx-auto">
               Availly turns your real calendar into a clean, public availability view. 
               <br className="hidden sm:block" />
-              People see when you're free—<span className="font-semibold text-gray-800">never what you're doing.</span>
+              People see when you're free <span className="font-semibold text-gray-800">never what you're doing.</span>
             </p>
           </motion.div>
 
@@ -221,7 +221,7 @@ const Hero = () => {
                 </div>
               </div>
               <p className="card-description font-medium leading-relaxed">
-                A simple link that shows when you're available—while keeping 
+                A simple link that shows when you're available while keeping 
                 <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-semibold"> every meeting and event private.</span>
               </p>
             </motion.div>

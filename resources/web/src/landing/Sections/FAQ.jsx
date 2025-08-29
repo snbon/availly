@@ -14,12 +14,12 @@ const FAQ = () => {
     {
       id: 'panel1',
       question: "Do people see my meetings?",
-      answer: "No. Availly only shows the times you're available—never titles, guests, or details. Your calendar events remain completely private while visitors can see when you have free time slots."
+      answer: "No. Availly only shows the times you're available never titles, guests, or details. Your calendar events remain completely private while visitors can see when you have free time slots."
     },
     {
       id: 'panel2',
       question: "Can visitors book directly like Calendly?",
-      answer: "Not today—and that's intentional. Availly is designed for privacy and control: visitors propose options inside your free windows, and you confirm what works. This avoids accidental double-booking, respects context (e.g., travel time, prep), and keeps your private calendar truly private."
+      answer: "Not today and that's intentional. Availly is designed for privacy and control: visitors propose options inside your free windows, and you confirm what works. This avoids accidental double-booking, respects context (e.g., travel time, prep), and keeps your private calendar truly private."
     },
     {
       id: 'panel3',
@@ -34,7 +34,7 @@ const FAQ = () => {
     {
       id: 'panel5',
       question: "How does time-zone handling work?",
-      answer: "Visitors automatically see your availability in their local time—no mental math required. Our smart time-zone detection ensures everyone sees the correct times for their location, making scheduling across time zones effortless."
+      answer: "Visitors automatically see your availability in their local time no mental math required. Our smart time-zone detection ensures everyone sees the correct times for their location, making scheduling across time zones effortless."
     },
     {
       id: 'panel6',

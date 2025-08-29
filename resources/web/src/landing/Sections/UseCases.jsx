@@ -7,7 +7,7 @@ const UseCases = () => {
     {
       icon: Briefcase,
       title: "Freelancers & consultants",
-      description: "Share when you're free to chat—keep client work private.",
+      description: "Share when you're free to chat keep client work private.",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       features: ["Client privacy protection", "Professional availability sharing", "No scheduling conflicts"]
@@ -150,7 +150,7 @@ const UseCases = () => {
                   <Briefcase className="w-8 h-8 text-purple-600" />
                 </div>
                 <h3 className="card-title font-bold text-gray-900 mb-3">Freelancers & consultants</h3>
-                <p className="card-description text-gray-600 mb-4 flex-1">Share when you're free to chat—keep client work private.</p>
+                <p className="card-description text-gray-600 mb-4 flex-1">Share when you're free to chat keep client work private.</p>
                 <div className="space-y-2">
                   {useCases[0].features.map((feature, i) => (
                     <div key={feature} className="flex items-center space-x-2">
@@ -261,7 +261,7 @@ const UseCases = () => {
                     Real-time clarity.
                   </h4>
                   <p className="card-description">
-                    If something pops up, your shared availability adjusts instantly—no manual edits.
+                    If something pops up, your shared availability adjusts instantly no manual edits.
                   </p>
                 </div>
               </div>

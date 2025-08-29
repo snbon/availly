@@ -31,7 +31,7 @@ const ValueProps = () => {
     {
       icon: Users,
       title: "Frictionless",
-      description: "Visitors don't need an account—just propose a time that fits.",
+      description: "Visitors don't need an account just propose a time that fits.",
       color: "text-orange-600",
       bgColor: "bg-orange-50",
       borderColor: "border-orange-200"
