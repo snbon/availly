@@ -32,8 +32,8 @@ const StatCard = ({ stat }) => {
       className={`${brandAnimations.scaleHover} ${(stat.isClickable || stat.onClick) ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
       onClick={(stat.isClickable || stat.onClick) ? handleClick : undefined}
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
+      <div className="flex items-center mb-4">
+        <div className={`w-12 h-12 flex-shrink-0 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
           {stat.isClickable && copied ? (
             <Check className={`w-6 h-6 ${stat.iconColor}`} />
           ) : stat.isClickable ? (
@@ -42,7 +42,7 @@ const StatCard = ({ stat }) => {
             <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
           )}
         </div>
-        <div className={`text-xs font-medium px-2 py-1 rounded-full ${
+        <div className={`text-xs font-medium px-3 py-1 rounded-full ml-3 max-w-[120px] break-words ${
           stat.changeType === 'positive' 
             ? 'bg-green-100 text-green-700' 
             : stat.changeType === 'warning'

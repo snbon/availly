@@ -68,7 +68,7 @@ const DashboardOverview = () => {
     { 
       label: 'Total Views', 
       value: dashboardData.totalViews === 0 ? 'No data yet' : dashboardData.totalViews.toLocaleString(), 
-      change: dashboardData.totalViews === 0 ? 'Share your link to start' : '+12%', 
+      change: dashboardData.totalViews === 0 ? 'Share link' : '+12%', 
       changeType: dashboardData.totalViews === 0 ? 'neutral' : 'positive',
       icon: Users, 
       color: 'blue',
