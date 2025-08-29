@@ -127,8 +127,8 @@ const Onboarding = () => {
           const dayObj = days.find(d => d.value === rule.day);
           return {
             weekday: dayObj.weekday,
-            start_time: rule.startTime,
-            end_time: rule.endTime
+            start_time_local: rule.startTime,
+            end_time_local: rule.endTime
           };
         });
 
