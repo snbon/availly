@@ -18,26 +18,26 @@ const Logo = ({ size = 'md', showText = true, variant = 'default' }) => {
     }
   };
   
-  // Responsive sizing - mobile-first approach with smaller mobile sizes
+  // Responsive sizing - mobile-first approach with container proportionally sized to text
   const sizes = {
     sm: { 
-      container: 'w-5 h-5 sm:w-8 sm:h-8', 
-      icon: 'w-2.5 h-2.5 sm:w-4 sm:h-4', 
+      container: 'w-4 h-4 sm:w-6 sm:h-6', 
+      icon: 'w-2 h-2 sm:w-3 sm:h-3', 
       text: 'text-xs sm:text-sm' 
     },
     md: { 
-      container: 'w-6 h-6 sm:w-12 sm:h-12', 
-      icon: 'w-3 h-3 sm:w-6 sm:h-6', 
+      container: 'w-5 h-5 sm:w-8 sm:h-8', 
+      icon: 'w-2.5 h-2.5 sm:w-4 sm:h-4', 
       text: 'text-sm sm:text-xl' 
     },
     lg: { 
-      container: 'w-8 h-8 sm:w-16 sm:h-16', 
-      icon: 'w-4 h-4 sm:w-8 sm:h-8', 
+      container: 'w-6 h-6 sm:w-12 sm:h-12', 
+      icon: 'w-3 h-3 sm:w-6 sm:h-6', 
       text: 'text-base sm:text-2xl' 
     },
     xl: { 
-      container: 'w-12 h-12 sm:w-20 sm:h-20', 
-      icon: 'w-6 h-6 sm:w-10 sm:h-10', 
+      container: 'w-8 h-8 sm:w-14 sm:h-14', 
+      icon: 'w-4 h-4 sm:w-6 sm:h-6', 
       text: 'text-lg sm:text-3xl' 
     }
   };
@@ -75,9 +75,7 @@ const Logo = ({ size = 'md', showText = true, variant = 'default' }) => {
           <h1 className={`${sizes[size].text} font-bold ${textColor} tracking-tight`}>
             <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Availly</span>
           </h1>
-          {(size === 'lg' || size === 'xl') && (
-            <p className="text-xs sm:text-sm text-slate-600 font-medium">Calendar Management</p>
-          )}
+
         </div>
       )}
     </div>
