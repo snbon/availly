@@ -42,7 +42,7 @@ const StatCard = ({ stat }) => {
             <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
           )}
         </div>
-        <div className={`text-sm font-medium px-2 py-1 rounded-full ${
+        <div className={`text-xs font-medium px-2 py-1 rounded-full ${
           stat.changeType === 'positive' 
             ? 'bg-green-100 text-green-700' 
             : stat.changeType === 'warning'
@@ -66,7 +66,7 @@ const StatCard = ({ stat }) => {
 
 const StatsGrid = ({ stats, showQuickActions = false }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       {stats.map((stat) => (
         <StatCard key={stat.label} stat={stat} />
       ))}

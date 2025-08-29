@@ -11,7 +11,130 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile-first responsive utilities */
+.mobile-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .mobile-container {
+    max-width: 640px;
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-container {
+    max-width: 768px;
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-container {
+    max-width: 1024px;
+    padding: 2.5rem;
+  }
+}
+
+/* Responsive text sizing */
+.text-responsive-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.text-responsive-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.text-responsive-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.text-responsive-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.text-responsive-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .text-responsive-xs {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .text-responsive-sm {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  
+  .text-responsive-base {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  
+  .text-responsive-lg {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  
+  .text-responsive-xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .text-responsive-xs {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  
+  .text-responsive-sm {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  
+  .text-responsive-base {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  
+  .text-responsive-lg {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  .text-responsive-xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
+
+/* Scrollbar utilities */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Smooth horizontal scrolling */
+.overflow-x-auto {
+  scroll-behavior: smooth;
 }
 
 /* Ensure minimum styles for login form */
@@ -24,24 +147,46 @@ body {
   padding: 1rem;
 }
 
+@media (min-width: 640px) {
+  .login-container {
+    padding: 1.5rem;
+  }
+}
+
 .login-card {
   background: white;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   border: 1px solid #e2e8f0;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  padding: 2.5rem;
+  padding: 1.5rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .login-card {
+    border-radius: 1rem;
+    padding: 2.5rem;
+    max-width: 400px;
+  }
 }
 
 .login-input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem;
   border: 1px solid #cbd5e1;
-  border-radius: 0.75rem;
-  font-size: 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
   transition: all 0.2s;
   background: #f8fafc;
+}
+
+@media (min-width: 640px) {
+  .login-input {
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+  }
 }
 
 .login-input:focus {
@@ -57,34 +202,62 @@ body {
 
 .input-icon {
   position: absolute;
-  left: 1rem;
+  left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1rem;
+  height: 1rem;
   pointer-events: none;
 }
 
+@media (min-width: 640px) {
+  .input-icon {
+    left: 1rem;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
 .input-with-left-icon {
-  padding-left: 3rem;
+  padding-left: 2.5rem;
+}
+
+@media (min-width: 640px) {
+  .input-with-left-icon {
+    padding-left: 3rem;
+  }
 }
 
 .input-with-right-icon {
-  padding-right: 3rem;
+  padding-right: 2.5rem;
+}
+
+@media (min-width: 640px) {
+  .input-with-right-icon {
+    padding-right: 3rem;
+  }
 }
 
 .login-button {
   width: 100%;
   background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%);
   color: white;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem;
   border: none;
   border-radius: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+@media (min-width: 640px) {
+  .login-button {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+  }
 }
 
 .login-button:hover {
@@ -111,5 +284,35 @@ body {
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 639px) {
+  /* Reduce touch target sizes for mobile */
+  button, input, select, textarea {
+    min-height: 44px;
+  }
+  
+  /* Optimize spacing for mobile */
+  .mobile-spacing {
+    margin: 0.5rem 0;
+    padding: 0.75rem;
+  }
+  
+  /* Ensure proper text sizing on mobile */
+  h1 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  
+  p {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
 }
 

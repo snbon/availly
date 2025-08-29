@@ -220,31 +220,61 @@ class CalendarConnectionsController extends Controller
         $cached = \Cache::remember($cacheKey, 300, function () use ($user, $request) {
             // Quick check: if user has no calendar connections, return empty array immediately
             if (!$user->calendarConnections()->where('status', 'active')->exists()) {
+                \Log::info('No active calendar connections for user', ['user_id' => $user->id]);
                 return [];
             }
 
             // Optimize query with select and limit
-            return $user->eventsCache()
+            $events = $user->eventsCache()
                 ->select(['id', 'title', 'start_at_utc', 'end_at_utc', 'all_day', 'provider'])
                 ->inDateRange(
-                    \Carbon\Carbon::parse($request->start_date)->startOfDay(),
-                    \Carbon\Carbon::parse($request->end_date)->endOfDay()
+                    // Convert user's local date range to UTC for proper database querying
+                    \Carbon\Carbon::parse($request->start_date)->setTimezone($user->timezone ?: 'UTC')->startOfDay()->utc(),
+                    \Carbon\Carbon::parse($request->end_date)->setTimezone($user->timezone ?: 'UTC')->endOfDay()->utc()
                 )
                 ->orderBy('start_at_utc')
                 ->limit(100) // Reasonable limit for dashboard view
-                ->get()
-                ->map(function ($event) {
-                    return [
-                        'id' => $event->id,
-                        'title' => $event->title,
-                        'start' => $event->start_at_utc->toISOString(),
-                        'end' => $event->end_at_utc->toISOString(),
-                        'all_day' => $event->all_day,
-                        'provider' => $event->provider,
-                    ];
-                })
-                ->toArray();
+                ->get();
+            
+            \Log::info('Found events in cache', [
+                'user_id' => $user->id,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'events_count' => $events->count(),
+                'user_timezone' => $user->timezone
+            ]);
+            
+            return $events->map(function ($event) use ($user) {
+                // Convert UTC times to user's timezone for proper date filtering
+                $userTimezone = $user->timezone ?: 'UTC';
+                $startLocal = $event->start_at_utc->setTimezone($userTimezone);
+                $endLocal = $event->end_at_utc->setTimezone($userTimezone);
+                
+                \Log::info('Processing event', [
+                    'event_id' => $event->id,
+                    'title' => $event->title,
+                    'start_utc' => $event->start_at_utc->toISOString(),
+                    'start_local' => $startLocal->toISOString(),
+                    'user_timezone' => $userTimezone
+                ]);
+                
+                return [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'start' => $startLocal->toISOString(),
+                    'end' => $endLocal->toISOString(),
+                    'all_day' => $event->all_day,
+                    'provider' => $event->provider,
+                ];
+            })
+            ->toArray();
         });
+
+        \Log::info('Returning calendar events', [
+            'user_id' => $user->id,
+            'events_count' => count($cached),
+            'cache_key' => $cacheKey
+        ]);
 
         return response()->json([
             'events' => $cached

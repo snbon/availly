@@ -69,29 +69,61 @@ export const brandTypography = {
   caption: 'font-normal text-sm'
 };
 
+// Responsive design utilities
+export const responsive = {
+  // Mobile-first spacing
+  spacing: {
+    xs: 'p-3 sm:p-4 md:p-6 lg:p-8',
+    sm: 'p-4 sm:p-6 md:p-8 lg:p-10',
+    md: 'p-6 sm:p-8 md:p-10 lg:p-12',
+    lg: 'p-8 sm:p-10 md:p-12 lg:p-16',
+    xl: 'p-10 sm:p-12 md:p-16 lg:p-20'
+  },
+  // Responsive text sizes
+  text: {
+    h1: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl',
+    h2: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl',
+    h3: 'text-lg sm:text-xl md:text-2xl lg:text-3xl',
+    body: 'text-sm sm:text-base md:text-lg',
+    caption: 'text-xs sm:text-sm'
+  },
+  // Responsive margins
+  margin: {
+    section: 'mb-6 sm:mb-8 md:mb-10 lg:mb-12',
+    element: 'mb-4 sm:mb-6 md:mb-8',
+    small: 'mb-2 sm:mb-3 md:mb-4'
+  },
+  // Responsive widths
+  width: {
+    container: 'w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl',
+    form: 'w-full max-w-xs sm:max-w-sm md:max-w-md',
+    button: 'w-full sm:w-auto sm:px-8'
+  }
+};
+
 // Component styles
 export const brandComponents = {
-  card: `bg-white rounded-2xl border border-slate-200/60 ${brandShadows.card} ${brandShadows.cardHover} transition-all duration-200`,
+  card: `bg-white rounded-xl sm:rounded-2xl border border-slate-200/60 ${brandShadows.card} ${brandShadows.cardHover} transition-all duration-200`,
   button: {
-    primary: `${brandGradients.primary} text-white px-6 py-3 rounded-xl font-semibold ${brandShadows.button} ${brandShadows.buttonHover} ${brandAnimations.scaleHover} transition-all duration-200`,
-    secondary: `bg-white border-2 border-brand-200 text-brand-700 px-6 py-3 rounded-xl font-semibold hover:bg-brand-50 hover:border-brand-300 ${brandAnimations.scaleHover} transition-all duration-200`,
-    ghost: `text-slate-600 hover:text-brand-600 hover:bg-brand-50 px-4 py-2 rounded-lg transition-all duration-200`
+    primary: `${brandGradients.primary} text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold ${brandShadows.button} ${brandShadows.buttonHover} ${brandAnimations.scaleHover} transition-all duration-200 text-sm sm:text-base`,
+    secondary: `bg-white border-2 border-brand-200 text-brand-700 px-4 sm:px-6 py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold hover:bg-brand-50 hover:border-brand-300 ${brandAnimations.scaleHover} transition-all duration-200 text-sm sm:text-base`,
+    ghost: `text-slate-600 hover:text-brand-600 hover:bg-brand-50 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all duration-200 text-sm sm:text-base`
   },
-  input: `w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-200 bg-white hover:border-slate-400`,
+  input: `w-full px-3 sm:px-4 py-3 sm:py-4 border border-slate-300 rounded-lg sm:rounded-xl text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-200 bg-white hover:border-slate-400 text-sm sm:text-base`,
   badge: {
-    primary: 'bg-brand-100 text-brand-700 px-3 py-1 rounded-full text-sm font-medium',
-    success: 'bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium',
-    warning: 'bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-sm font-medium',
-    danger: 'bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium'
+    primary: 'bg-brand-100 text-brand-700 px-2 sm:px-3 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium',
+    success: 'bg-green-100 text-green-700 px-2 sm:px-3 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium',
+    warning: 'bg-amber-100 text-amber-700 px-2 sm:px-3 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium',
+    danger: 'bg-red-100 text-red-700 px-2 sm:px-3 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium'
   }
 };
 
 export const brandLayout = {
-  container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-  section: 'py-12',
+  container: 'max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8',
+  section: 'py-8 sm:py-12 md:py-16 lg:py-20',
   grid: {
-    stats: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6',
-    cards: 'grid grid-cols-1 lg:grid-cols-2 gap-8',
-    full: 'grid grid-cols-1 gap-8'
+    stats: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6',
+    cards: 'grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8',
+    full: 'grid grid-cols-1 gap-6 sm:gap-8'
   }
 };

@@ -27,6 +27,11 @@ const useCalendarStore = create((set, get) => ({
       return true;
     }
     
+    // Check if we have events - if not, we should fetch
+    if (!state.events || state.events.length === 0) {
+      return true;
+    }
+    
     // Check if cache expired (5 minutes)
     const cacheAge = Date.now() - state.lastFetched;
     return cacheAge > 5 * 60 * 1000; // 5 minutes
@@ -43,22 +48,17 @@ const useCalendarStore = create((set, get) => ({
     
     // Check cache first
     if (!force && !state.shouldFetch(startDate, endDate)) {
-      console.log('📋 Using cached calendar events');
       return state.events;
     }
     
     try {
       set({ isLoading: true });
       
-      console.log(`🗓️ Fetching calendar events: ${startDate} to ${endDate}`);
-      const startTime = Date.now();
-      
+      console.log('Calendar API: Fetching events for:', { startDate, endDate });
       const response = await api.get(`/me/calendar/events?start_date=${startDate}&end_date=${endDate}`);
       
-      const duration = Date.now() - startTime;
-      console.log(`✅ Calendar events loaded in ${duration}ms:`, response.events?.length || 0, 'events');
-      
       const events = response.events || [];
+      console.log('Calendar API: Received events:', events.length);
       
       set({
         events,
@@ -83,15 +83,15 @@ const useCalendarStore = create((set, get) => ({
   },
   
   // Initialize calendar store
-  initialize: async (startDate, endDate) => {
+  initialize: async (startDate, endDate, force = false) => {
     const state = get();
-    if (state.isInitialized && !state.shouldFetch(startDate, endDate)) {
+    if (state.isInitialized && !force && !state.shouldFetch(startDate, endDate)) {
       console.log('Calendar store already initialized with current date range, skipping...');
       return;
     }
     
-    console.log('Initializing calendar store...');
-    await get().fetchEvents(startDate, endDate);
+    console.log('Initializing calendar store...', { force });
+    await get().fetchEvents(startDate, endDate, force);
   },
   
   // Clear store
@@ -105,7 +105,17 @@ const useCalendarStore = create((set, get) => ({
   
   // Refresh events (force fetch)
   refresh: async (startDate, endDate) => {
-    console.log('Refreshing calendar events...');
+    return await get().fetchEvents(startDate, endDate, true);
+  },
+  
+  // Force refresh after sync (clears cache and refetches)
+  forceRefreshAfterSync: async (startDate, endDate) => {
+    console.log('Force refreshing calendar after sync...');
+    // Clear the cache and force a fresh fetch
+    set({
+      lastFetched: null,
+      currentDateRange: null
+    });
     return await get().fetchEvents(startDate, endDate, true);
   }
 }));
