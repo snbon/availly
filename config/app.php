@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used for generating frontend links in emails and other
+    | places where the frontend application URL is needed.
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', 'https://availly.me'),
+
 ];

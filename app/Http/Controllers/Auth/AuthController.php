@@ -48,6 +48,7 @@ class AuthController extends Controller
             Mail::to($user->email)->send(new VerifyEmail($user, $verificationCode));
         } catch (\Exception $e) {
             \Log::error('Failed to send verification email: ' . $e->getMessage());
+            \Log::error('Exception details: ' . $e->getTraceAsString());
             // Don't fail registration if email fails
         }
 
@@ -216,8 +217,10 @@ class AuthController extends Controller
             Mail::to($user->email)->send(new VerifyEmail($user, $verificationCode));
         } catch (\Exception $e) {
             \Log::error('Failed to resend verification email: ' . $e->getMessage());
+            \Log::error('Exception details: ' . $e->getTraceAsString());
             return response()->json([
-                'message' => 'Failed to send verification email'
+                'message' => 'Failed to send verification email',
+                'error' => $e->getMessage()
             ], 500);
         }
 
