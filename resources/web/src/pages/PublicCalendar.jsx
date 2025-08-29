@@ -7,6 +7,7 @@ import {
   WeekView,
   MonthView
 } from '../components/public';
+import { api } from '../services/api';
 
 const PublicCalendar = () => {
   const { slug } = useParams();
@@ -43,24 +44,15 @@ const PublicCalendar = () => {
         // Calculate the date range for the requested month
         const today = new Date();
         const currentMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
-        startDate = new Date(currentMonth);
+        startDate = new Date(currentMonth.getFullYear(), today.getMonth() + monthOffset, 1);
         endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
       }
       
       const rangeParam = `${startDate.toISOString().split('T')[0]}..${endDate.toISOString().split('T')[0]}`;
       
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/public/${slug}/availability?range=${rangeParam}`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError('not_found');
-        } else {
-          setError('server_error');
-        }
-        return;
-      }
-      
-      const data = await response.json();
+      console.log('Fetching availability for slug:', slug, 'with range:', rangeParam);
+      const data = await api.getPublicAvailability(slug, rangeParam);
+      console.log('Availability data received:', data);
       setAvailability(data);
     } catch (error) {
       console.error('Failed to fetch availability:', error);

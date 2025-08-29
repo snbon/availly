@@ -127,16 +127,16 @@ const MonthView = ({ availability, currentMonthOffset, onMonthChange, onRefresh 
   return (
     <div className="max-w-4xl mx-auto">
       {/* Month Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-3 sm:space-y-0">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">
             {isCurrentMonth() ? "This Month" : "Month View"}
           </h2>
           <p className="text-sm text-slate-500 mt-1">
             Times shown in {getTimezoneDisplay(userTimezone)}
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-center sm:justify-end space-x-2">
           <button
             onClick={() => navigateMonth(-1)}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -145,7 +145,7 @@ const MonthView = ({ availability, currentMonthOffset, onMonthChange, onRefresh 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="text-lg font-medium text-slate-700 min-w-[200px] text-center">
+          <span className="text-base sm:text-lg font-medium text-slate-700 min-w-[140px] sm:min-w-[200px] text-center">
             {MONTHS[currentMonth]} {currentYear}
           </span>
           <button
@@ -159,28 +159,62 @@ const MonthView = ({ availability, currentMonthOffset, onMonthChange, onRefresh 
         </div>
       </div>
 
-      {/* Days of Week Header */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {DAYS_OF_WEEK.map(day => (
-          <div key={day} className="h-8 flex items-center justify-center">
-            <span className="text-sm font-medium text-slate-500">
-              {day}
-            </span>
+      {/* Mobile: Compact calendar view */}
+      <div className="block sm:hidden">
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {DAYS_OF_WEEK.map(day => (
+            <div key={day} className="h-6 flex items-center justify-center">
+              <span className="text-xs font-medium text-slate-500">
+                {day}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="border border-slate-200 rounded-lg overflow-hidden">
+          <div className="grid grid-cols-7">
+            {calendarDays.map((dayInfo, index) => (
+              <div key={index} className="h-12 border-r border-b border-slate-200 bg-slate-50 flex items-center justify-center">
+                {dayInfo && (
+                  <div className="text-center">
+                    <div className={`text-sm font-medium ${dayInfo.isToday ? 'text-blue-700' : 'text-slate-900'}`}>
+                      {dayInfo.day}
+                    </div>
+                    {dayInfo.hasAvailability && (
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full mx-auto mt-1"></div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <div className="grid grid-cols-7">
-          {calendarDays.map((dayInfo, index) => (
-            <DayCell key={index} dayInfo={dayInfo} />
+      {/* Desktop: Full calendar view */}
+      <div className="hidden sm:block">
+        {/* Days of Week Header */}
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {DAYS_OF_WEEK.map(day => (
+            <div key={day} className="h-8 flex items-center justify-center">
+              <span className="text-sm font-medium text-slate-500">
+                {day}
+              </span>
+            </div>
           ))}
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="border border-slate-200 rounded-lg overflow-hidden">
+          <div className="grid grid-cols-7">
+            {calendarDays.map((dayInfo, index) => (
+              <DayCell key={index} dayInfo={dayInfo} />
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="mt-6 flex items-center justify-between text-sm">
+      <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm space-y-3 sm:space-y-0">
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -191,14 +225,14 @@ const MonthView = ({ availability, currentMonthOffset, onMonthChange, onRefresh 
             <span className="text-slate-600">Unavailable</span>
           </div>
         </div>
-                  {!isCurrentMonth() && (
-            <button
-              onClick={() => onMonthChange(0)}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Go to current month
-            </button>
-          )}
+        {!isCurrentMonth() && (
+          <button
+            onClick={() => onMonthChange(0)}
+            className="text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Go to current month
+          </button>
+        )}
       </div>
     </div>
   );

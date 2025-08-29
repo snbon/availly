@@ -49,6 +49,8 @@ class ApiService {
     try {
       const response = await fetch(url, config);
       
+
+      
       const data = await response.json();
       
       // Debug logging for timezone issues
@@ -59,6 +61,14 @@ class ApiService {
       if (!response.ok) {
         // Create an error object that includes the response data
         const error = new Error(data.message || 'Something went wrong');
+        error.status = response.status;
+        error.data = data;
+        throw error;
+      }
+
+      // Check if response body contains an error message even with 200 status
+      if (data.error || data.message === 'Something went wrong') {
+        const error = new Error(data.message || data.error || 'Something went wrong');
         error.status = response.status;
         error.data = data;
         throw error;
@@ -153,8 +163,11 @@ class ApiService {
   }
 
   // Public methods
-  async getPublicAvailability(slug) {
-    return this.request(`/public/${slug}/availability`);
+  async getPublicAvailability(slug, range = null) {
+    const endpoint = range 
+      ? `/public/${slug}/availability?range=${range}`
+      : `/public/${slug}/availability`;
+    return this.request(endpoint);
   }
 
   // HTTP method helpers

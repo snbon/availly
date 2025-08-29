@@ -12,13 +12,13 @@ class PublicAvailabilityController extends Controller
 {
     public function show(string $slug, Request $request): JsonResponse
     {
-        // Validate slug format
-        if (!preg_match('/^[a-z0-9-]{4,10}$/', $slug)) {
+        // Validate slug format (case-insensitive)
+        if (!preg_match('/^[a-zA-Z0-9-]{4,10}$/', $slug)) {
             return response()->json(['error' => 'Invalid slug format'], 404);
         }
 
-        // Find user by slug
-        $profile = Profile::where('slug', $slug)
+        // Find user by slug (case-insensitive)
+        $profile = Profile::whereRaw('LOWER(slug) = ?', [strtolower($slug)])
             ->where('is_active', true)
             ->with(['user.availabilityRules', 'user.eventsCache'])
             ->first();

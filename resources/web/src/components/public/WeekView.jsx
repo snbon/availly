@@ -266,10 +266,62 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
     }
   };
 
+  // Mobile-friendly day view component
+  const MobileDayView = ({ date, dayName }) => {
+    const today = isToday(date);
+    const availabilityBlocks = getAvailabilityBlocks(date);
+    
+    return (
+      <div 
+        className={`p-3 border rounded-lg transition-all ${
+          today 
+            ? 'bg-blue-50 border-blue-200' 
+            : 'bg-white border-slate-200'
+        }`}
+      >
+        {/* Day header */}
+        <div className="text-center mb-3">
+          <div className={`text-sm font-medium ${
+            today ? 'text-blue-700' : 'text-slate-600'
+          }`}>
+            {dayName}
+          </div>
+          <div className={`text-lg font-bold ${
+            today ? 'text-blue-800' : 'text-slate-900'
+          }`}>
+            {date.getDate()}
+          </div>
+        </div>
+
+        {/* Availability blocks */}
+        {availabilityBlocks.length > 0 ? (
+          <div className="space-y-2">
+            {availabilityBlocks.map((block, index) => (
+              <div key={index} className="bg-green-100 border border-green-200 rounded-md p-2">
+                <div className="flex items-center space-x-2">
+                  <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-xs font-medium text-green-800">
+                    {block.timeRange}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <div className="text-xs text-slate-400">No availability</div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
       {/* Week Navigation Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0">
         <div>
           <h3 className="text-lg font-semibold text-slate-900">
             {isCurrentWeek() ? "This Week's Schedule" : "Week Schedule"}
@@ -278,7 +330,7 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
             Times shown in {getTimezoneDisplay(userTimezone)}
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-center sm:justify-end space-x-2">
           <button
             onClick={() => navigateWeek(-1)}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -287,7 +339,7 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="text-sm font-medium text-slate-700 min-w-[200px] text-center">
+          <span className="text-sm font-medium text-slate-700 min-w-[140px] sm:min-w-[200px] text-center">
             {formatWeekRange()}
           </span>
           <button
@@ -311,8 +363,28 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
         </div>
       </div>
 
-      {/* Calendar Header */}
-      <div className="flex border-b border-slate-200 mb-4">
+      {/* Mobile: Day cards grid */}
+      <div className="block sm:hidden">
+        <div className="grid grid-cols-2 gap-3">
+          {DAYS.map((day, index) => {
+            const date = weekDates[index];
+            if (!date) return null;
+            
+            return (
+              <MobileDayView 
+                key={day} 
+                date={date} 
+                dayName={day} 
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Desktop: Full calendar view */}
+      <div className="hidden sm:block">
+        {/* Calendar Header */}
+        <div className="flex border-b border-slate-200 mb-4">
         {/* Time column header - matches body width */}
         <div className="w-20 p-3 text-sm font-medium text-slate-500 text-center">Time</div>
         
@@ -425,9 +497,10 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
           </div>
         </div>
       </div>
+      </div>
       
       {/* Legend */}
-      <div className="mt-4 flex items-center justify-between text-sm">
+      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm space-y-3 sm:space-y-0">
         <div className="flex items-center space-x-4 flex-wrap gap-y-2">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-3 bg-green-200 border border-green-300 rounded"></div>
@@ -440,7 +513,7 @@ const WeekView = ({ availability, currentWeekOffset, onWeekChange, onRefresh }) 
         </div>
         {!isCurrentWeek() && (
           <button
-            onClick={() => setCurrentWeekOffset(0)}
+            onClick={() => onWeekChange(0)}
             className="text-blue-600 hover:text-blue-700 font-medium"
           >
             Go to current week
