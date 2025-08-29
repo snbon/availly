@@ -1,9 +1,9 @@
 import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import './landing-styles.css';
+
 import Header from './Layout/Header';
-import Footer from './Layout/Footer';
+import Footer from '../components/Footer';
 import Hero from './Sections/Hero';
 import ValueProps from './Sections/ValueProps';
 import HowItWorks from './Sections/HowItWorks';
@@ -79,7 +79,7 @@ const LandingPage = () => {
   return (
     <ThemeProvider theme={landingTheme}>
       <CssBaseline />
-      <div className="landing-page min-h-screen relative overflow-hidden">
+      <div className="landing-page min-h-screen relative overflow-hidden flex flex-col">
         {/* Main background gradient */}
         <div className="fixed inset-0 bg-gradient-to-br from-indigo-50 via-purple-50/40 to-pink-50/30"></div>
         
@@ -96,9 +96,9 @@ const LandingPage = () => {
         <div className="fixed inset-0 bg-grid-pattern opacity-20 pointer-events-none"></div>
         
         {/* Content */}
-        <div className="relative z-10">
+        <div className="relative z-10 flex flex-col flex-1">
           <Header />
-          <main>
+          <main className="pt-20 pb-24 flex-1">
             <Hero />
             <ValueProps />
             <HowItWorks />

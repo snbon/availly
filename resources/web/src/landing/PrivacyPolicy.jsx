@@ -3,7 +3,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import './landing-styles.css';
 import Header from './Layout/Header';
-import Footer from './Layout/Footer';
+import Footer from '../components/Footer';
 
 // Material-UI theme for privacy policy page
 const privacyTheme = createTheme({
@@ -78,7 +78,7 @@ const PrivacyPolicy = () => {
         {/* Content */}
         <div className="relative z-10">
           <Header />
-          <main className="pt-20 pb-16">
+          <main className="pt-32 pb-16">
             <div className="container-custom max-w-3xl mx-auto">
               <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-center">
