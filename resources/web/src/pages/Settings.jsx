@@ -90,9 +90,36 @@ const Settings = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <AlertContainer alerts={alerts} onRemoveAlert={removeAlert} />
         
+        {/* Mobile: Tab Navigation Bar */}
+        <div className="block lg:hidden mb-6">
+          <div className="bg-white border border-slate-200/60 rounded-lg shadow-sm">
+            <nav className="flex overflow-x-auto scrollbar-hide">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-2 py-3 px-4 border-b-2 font-medium text-sm transition-all duration-200 flex-shrink-0 ${
+                      isActive
+                        ? 'border-purple-500 text-purple-600'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-purple-300'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="text-xs sm:text-sm">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
+          {/* Desktop: Sidebar Navigation */}
+          <div className="hidden lg:block lg:col-span-1">
             <Card padding="sm">
               <nav className="space-y-1">
                 {tabs.map((tab) => {
