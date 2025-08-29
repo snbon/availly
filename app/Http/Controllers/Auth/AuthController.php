@@ -46,14 +46,12 @@ class AuthController extends Controller
 
         // Send verification email using Resend Facade
         try {
+            $mail = new VerifyEmail($user, $verificationCode);
             Resend::emails()->send([
                 'from' => config('mail.from.name') . ' <' . config('mail.from.address') . '>',
                 'to' => [$user->email],
-                'subject' => 'Verify Your Email Address - Availly',
-                'html' => view('emails.verify-email', [
-                    'user' => $user,
-                    'verificationCode' => $verificationCode
-                ])->render(),
+                'subject' => $mail->envelope()->subject,
+                'html' => $mail->render(),
             ]);
         } catch (\Exception $e) {
             \Log::error('Failed to send verification email via Resend: ' . $e->getMessage());
@@ -223,14 +221,12 @@ class AuthController extends Controller
 
         // Resend verification email using Resend Facade
         try {
+            $mail = new VerifyEmail($user, $verificationCode);
             Resend::emails()->send([
                 'from' => config('mail.from.name') . ' <' . config('mail.from.address') . '>',
                 'to' => [$user->email],
-                'subject' => 'Verify Your Email Address - Availly',
-                'html' => view('emails.verify-email', [
-                    'user' => $user,
-                    'verificationCode' => $verificationCode
-                ])->render(),
+                'subject' => $mail->envelope()->subject,
+                'html' => $mail->render(),
             ]);
         } catch (\Exception $e) {
             \Log::error('Failed to resend verification email via Resend: ' . $e->getMessage());
