@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Resend\Laravel\Facades\Resend;
 use Throwable;
 
 class AuthController extends Controller
@@ -44,17 +43,11 @@ class AuthController extends Controller
             'verification_code_expires_at' => now()->addHours(24),
         ]);
 
-        // Send verification email using Resend Facade
+        // Send verification email using Laravel's mail system
         try {
-            $mail = new VerifyEmail($user, $verificationCode);
-            Resend::emails()->send([
-                'from' => config('mail.from.name') . ' <' . config('mail.from.address') . '>',
-                'to' => [$user->email],
-                'subject' => $mail->envelope()->subject,
-                'html' => $mail->render(),
-            ]);
+            Mail::to($user->email)->send(new VerifyEmail($user, $verificationCode));
         } catch (\Exception $e) {
-            \Log::error('Failed to send verification email via Resend: ' . $e->getMessage());
+            \Log::error('Failed to send verification email: ' . $e->getMessage());
             \Log::error('Exception details: ' . $e->getTraceAsString());
             // Don't fail registration if email fails
         }
@@ -219,17 +212,11 @@ class AuthController extends Controller
             'verification_code_expires_at' => now()->addHours(24),
         ]);
 
-        // Resend verification email using Resend Facade
+        // Resend verification email using Laravel's mail system
         try {
-            $mail = new VerifyEmail($user, $verificationCode);
-            Resend::emails()->send([
-                'from' => config('mail.from.name') . ' <' . config('mail.from.address') . '>',
-                'to' => [$user->email],
-                'subject' => $mail->envelope()->subject,
-                'html' => $mail->render(),
-            ]);
+            Mail::to($user->email)->send(new VerifyEmail($user, $verificationCode));
         } catch (\Exception $e) {
-            \Log::error('Failed to resend verification email via Resend: ' . $e->getMessage());
+            \Log::error('Failed to resend verification email: ' . $e->getMessage());
             \Log::error('Exception details: ' . $e->getTraceAsString());
             return response()->json([
                 'message' => 'Failed to send verification email',
