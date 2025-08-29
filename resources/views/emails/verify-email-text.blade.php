@@ -14,4 +14,4 @@ You can also click this link to verify automatically:
 If you didn't create an account with Availly, you can safely ignore this email.
 
 ---
-© 2024 Availly. Crafted with excellence.
+© 2025 Availly. Product by Baghlabs.

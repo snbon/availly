@@ -85,7 +85,7 @@
                 📅
             </div>
             <h1>Welcome to Availly!</h1>
-            <p>Hi {{ $user->name }}, please verify your email address to get started.</p>
+            <p>Hi {{ $user->name ?? 'there' }}, please verify your email address to get started.</p>
         </div>
 
         <div class="verification-code">
@@ -97,7 +97,7 @@
         <p>Enter this code in the app to verify your email address and start managing your calendar.</p>
 
         <div style="text-align: center;">
-            <a href="{{ env('FRONTEND_URL', 'http://localhost:5173') }}/verify-email?email={{ urlencode($user->email) }}&code={{ $verificationCode }}"
+            <a href="{{ config('app.frontend_url', 'https://availly.me') }}/verify-email?email={{ urlencode($user->email) }}&code={{ $verificationCode }}"
                 class="button">
                 Verify Email Address
             </a>
@@ -105,7 +105,7 @@
 
         <div class="footer">
             <p>If you didn't create an account with Availly, you can safely ignore this email.</p>
-            <p>&copy; 2024 Availly. Crafted with excellence.</p>
+            <p>&copy; 2025 Availly. Product by Baghlabs.</p>
         </div>
     </div>
 </body>

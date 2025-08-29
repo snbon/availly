@@ -1,0 +1,44 @@
+# Development files
+.env
+.env.*
+!.env.example
+
+# Node modules (will be installed during build)
+node_modules/
+resources/web/node_modules/
+
+# Development builds
+resources/web/dist/
+
+# Laravel development files
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+
+# Testing
+tests/
+phpunit.xml
+.phpunit.result.cache
+
+# Documentation
+docs/
+README.md
+
+# Git
+.git/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development tools
+.editorconfig
