@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Resend\Laravel\Facades\Resend;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class AuthController extends Controller
