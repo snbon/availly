@@ -4,6 +4,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import StoreInitializer from './components/StoreInitializer';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './landing/LandingPage';
+import PrivacyPolicy from './landing/PrivacyPolicy';
+import TermsOfService from './landing/TermsOfService';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import EmailVerification from './pages/EmailVerification';
@@ -24,6 +26,10 @@ function App() {
           <Routes>
             {/* Landing page - root route */}
             <Route path="/" element={<LandingPage />} />
+            
+            {/* Legal pages */}
+            <Route path="/privacypolicy" element={<PrivacyPolicy />} />
+            <Route path="/termsofservice" element={<TermsOfService />} />
             
             {/* Public calendar view - direct slug access */}
             <Route path="/:slug" element={<PublicCalendar />} />

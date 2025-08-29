@@ -45,6 +45,8 @@ const Header = () => {
     { name: 'FAQ', href: '#faq' }
   ];
 
+
+
   const scrollToSection = (href) => {
     const element = document.querySelector(href);
     if (element) {
@@ -52,6 +54,8 @@ const Header = () => {
     }
     setMobileOpen(false);
   };
+
+
 
   const mobileMenu = (
     <motion.div 
@@ -74,24 +78,26 @@ const Header = () => {
         </motion.button>
       </div>
 
-      {/* Navigation */}
-      <div className="flex flex-col items-center justify-center min-h-screen -mt-20 px-6">
-        <nav className="flex flex-col items-center space-y-8 mb-12">
-          {navItems.map((item, index) => (
-            <motion.button
-              key={item.name}
-              onClick={() => scrollToSection(item.href)}
-              className="text-2xl font-semibold text-gray-800 hover:text-purple-600 transition-colors duration-200"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + index * 0.1, duration: 0.5 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {item.name}
-            </motion.button>
-          ))}
-        </nav>
+              {/* Navigation */}
+        <div className="flex flex-col items-center justify-center min-h-screen -mt-20 px-6">
+          <nav className="flex flex-col items-center space-y-8 mb-12">
+            {navItems.map((item, index) => (
+              <motion.button
+                key={item.name}
+                onClick={() => scrollToSection(item.href)}
+                className="text-2xl font-semibold text-gray-800 hover:text-purple-600 transition-colors duration-200"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + index * 0.1, duration: 0.5 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {item.name}
+              </motion.button>
+            ))}
+            
+
+          </nav>
 
         {/* CTA Buttons */}
         <motion.div 
@@ -160,6 +166,8 @@ const Header = () => {
                       {item.name}
                     </motion.button>
                   ))}
+                  
+
                 </nav>
                 <div className="flex items-center space-x-4">
                   <motion.div
