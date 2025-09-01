@@ -22,6 +22,7 @@ return [
         'https://availly.me',
         'http://localhost:3000', // For local development
         'http://localhost:5173', // Vite dev server
+        'http://localhost:5174', // Vite dev server (alternative port)
     ],
 
     'allowed_origins_patterns' => [],
