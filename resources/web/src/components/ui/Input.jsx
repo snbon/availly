@@ -11,7 +11,7 @@ const Input = ({
 }) => {
   const inputClasses = `
     ${brandComponents.input}
-    ${Icon ? 'pl-10' : ''}
+    ${Icon ? 'pl-12' : ''}
     ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}
     ${className}
   `.trim();

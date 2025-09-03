@@ -233,61 +233,7 @@ const UseCases = () => {
           </div>
         </div>
 
-        {/* Why Availly section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-        >
-          <div className="card text-center bg-white/80 backdrop-blur-sm border-purple-200">
-            <h3 className="h2 mb-6 sm:mb-8">
-              Why <span className="gradient-text">Availly</span>
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 text-left">
-              <div className="space-y-4 sm:space-y-6">
-                <div>
-                                    <h4 className="card-title font-semibold text-gray-900 mb-2">
-                    Show availability, not your life.
-                  </h4>
-                  <p className="card-description">
-                    Availly reveals only the green "free" windows. Your calendar details never appear.
-                  </p>
-                </div>
-                
-                <div>
-                  <h4 className="card-title font-semibold text-gray-900 mb-2">
-                    Real-time clarity.
-                  </h4>
-                  <p className="card-description">
-                    If something pops up, your shared availability adjusts instantly no manual edits.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-4 sm:space-y-6">
-                <div>
-                  <h4 className="card-title font-semibold text-gray-900 mb-2">
-                    Made for external scheduling.
-                  </h4>
-                  <p className="card-description">
-                    Perfect when coordinating with clients, vendors, or anyone outside your org.
-                  </p>
-                </div>
-                
-                <div>
-                  <h4 className="card-title font-semibold text-gray-900 mb-2">
-                    Clean, focused UI.
-                  </h4>
-                  <p className="card-description">
-                    Only the hours that matter. No midnight scroll.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+
       </div>
     </section>
   );

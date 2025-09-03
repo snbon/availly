@@ -9,7 +9,7 @@ import ValueProps from './Sections/ValueProps';
 import HowItWorks from './Sections/HowItWorks';
 import SocialProof from './Sections/SocialProof';
 import UseCases from './Sections/UseCases';
-import Features from './Sections/Features';
+
 import Pricing from './Sections/Pricing';
 import FAQ from './Sections/FAQ';
 
@@ -104,7 +104,7 @@ const LandingPage = () => {
             <HowItWorks />
             <SocialProof />
             <UseCases />
-            <Features />
+
             <Pricing />
             <FAQ />
           </main>
